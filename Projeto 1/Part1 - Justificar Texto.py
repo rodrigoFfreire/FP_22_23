@@ -1,4 +1,8 @@
 def limpa_texto(text: str) -> str:
+    '''
+    Esta função pega no argumento {text} e remove os caracteres (\\t, \\n, \\v, \\f, \\r) 
+    Remove também espaços que aparecem mais do que duas vezes de seguida
+    '''
     not_wanted_chars = {
         9: ' ',     # 9 -> \t
         10: ' ',    # 10 -> \n
@@ -6,11 +10,13 @@ def limpa_texto(text: str) -> str:
         12: ' ',    # 12 -> \f
         13: ' '     # 13 -> \r
     }
-    
     return ' '.join(text.translate(not_wanted_chars).split())
 
 
 def corta_texto(text: str, size: int) -> tuple:
+    '''Esta função corta {text} em duas partes: \n
+    1 -> Contem todo o texto que tem largura {size} sem cortar palavras ao meio
+    2 -> Contem o resto de {text} que sobrou'''
     size_left = size
     text_first = []
     text_rest = text.split()
