@@ -3,3 +3,4 @@
 Projeto1/test/
 Unit Tester
 .pytest_cache
+*.code-workspace
