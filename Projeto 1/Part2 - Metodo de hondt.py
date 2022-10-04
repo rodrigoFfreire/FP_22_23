@@ -41,21 +41,18 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
             raise ValueError('obtem_resultado_eleicoes: argumento invalido')
         
         if (not isinstance(list(i.keys())[0], str)
-            or not isinstance(list(i.keys())[1], str)):
-            raise ValueError('obtem_resultado_eleicoes: argumento invalido')
-        
-        if (not isinstance(i['votos'], dict) or not isinstance(i['deputados'], int)
-            or i['deputados'] < 1):
-            raise ValueError('obtem_resultado_eleicoes: argumento invalido')
-        
-        if not any(i['votos'].values()):
+            or not isinstance(list(i.keys())[1], str)
+            or not isinstance(i['votos'], dict) 
+            or not isinstance(i['deputados'], int)
+            or not any(i['votos'].values())
+            or i['deputados'] < 1
+            ):
             raise ValueError('obtem_resultado_eleicoes: argumento invalido')
         
         for key, value in i['votos'].items():
             if not isinstance(key, str) or not isinstance(value, int) or value < 0:
                 raise ValueError('obtem_resultado_eleicoes: argumento invalido')
         
-    
     soma = dict.fromkeys(obtem_partidos(votes), 0)
     deputies = []
     for i in votes.values():
@@ -67,10 +64,10 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
             
         deputies += atribui_mandatos(i['votos'], i['deputados'])
     
-    resultado = []
+    results = []
     for i in obtem_partidos(votes):
-        resultado.append((i, deputies.count(i), soma[i]))
+        results.append((i, deputies.count(i), soma[i]))
         
-    resultado.sort(key=lambda party: party[2], reverse=True)
+    results.sort(key=lambda party: party[2], reverse=True)
     
-    return resultado
+    return results
