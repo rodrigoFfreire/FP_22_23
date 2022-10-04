@@ -21,9 +21,9 @@ def corta_texto(text: str, size: int) -> tuple:
     text_first = []
     text_rest = text.split()
     
-    for word in text.split():
+    for word in text.split():               
         if len(word) > size_left:
-            break
+            break                   # Parar de adicionar texto a {text_first} se {word} exceder o limite restante de largura
         else:
             text_first.append(word)
             text_rest.remove(word)
@@ -33,10 +33,13 @@ def corta_texto(text: str, size: int) -> tuple:
 
 
 def insere_espacos(text: str, padding: int) -> str:
+    '''Esta função insere espaços entre as palavras de forma homogénea de forma
+    a que {text} atinga uma certa largura
+    '''
     pad = padding - len(text)
     text_splitted = text.split()
     
-    if len(text_splitted) < 2:
+    if len(text_splitted) < 2:      # Se uma sequencia for constituida por menos de 2 palavras
         return text + (' ' * pad)
     else:
         while pad > 0:
@@ -69,8 +72,8 @@ def justifica_texto(text: str, length: int) -> tuple:
     
     def splitter(text: str, length: int) -> None:
         '''Esta funcao utiliza recursao para ir cortando o texto em pedacos
-        de largura (length) ate a largura do ultimo pedaco ser inferior a
-        (length). Juntando no final esses pedacos a uma lista para serem processados
+        de largura {length} ate a largura do ultimo pedaco ser inferior a
+        {length}. Juntando no final esses pedacos a uma lista para serem processados
         mais tarde
         '''
         nonlocal text_final
