@@ -1,4 +1,5 @@
 .vscode
 .DS_STORE
 Projeto1/test/
+Projeto1/Unit Tester/
 .pytest_cache
