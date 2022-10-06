@@ -10,26 +10,25 @@ def limpa_texto(text: str) -> str:
         13: ' '     # 13 -> \r
     }
     
-    return ' '.join(text.translate(not_wanted_chars).split())
+    return ' '.join(text.translate(not_wanted_chars).split())   # translate() converte caracteres utilizando {not_wanted_chars} | split() converte string em list | join() converte list em string e utiliza ' ' como separador
 
 
 def corta_texto(text: str, size: int) -> tuple:
     '''Esta função corta {text} em duas partes: \n
     1 -> Contem todo o texto que tem largura {size} sem cortar palavras ao meio
     2 -> Contem o resto de {text} que sobrou'''
-    size_left = size
     text_first = []
     text_rest = text.split()
     
     for word in text.split():               
-        if len(word) > size_left:
+        if len(word) > size:
             break                   # Parar de adicionar texto a {text_first} se {word} exceder o limite restante de largura
         else:
             text_first.append(word)
             text_rest.remove(word)
-            size_left -= len(word) + 1
+            size -= len(word) + 1
             
-    return (' '.join(text_first), ' '.join(text_rest))
+    return ' '.join(text_first), ' '.join(text_rest)
 
 
 def insere_espacos(text: str, padding: int) -> str:

@@ -14,7 +14,7 @@ def limpa_texto(text: str) -> str:
         13: ' '     # 13 -> \r
     }
     
-    return ' '.join(text.translate(not_wanted_chars).split())
+    return ' '.join(text.translate(not_wanted_chars).split())       # Nota 1 (Consultar no fim do ficheiro)
 
 
 def corta_texto(text: str, size: int) -> tuple:
@@ -33,7 +33,7 @@ def corta_texto(text: str, size: int) -> tuple:
             text_rest.remove(word)
             size_left -= len(word) + 1
             
-    return (' '.join(text_first), ' '.join(text_rest))
+    return ' '.join(text_first), ' '.join(text_rest)
 
 
 def insere_espacos(text: str, padding: int) -> str:
@@ -86,7 +86,7 @@ def justifica_texto(text: str, length: int) -> tuple:
         {length}. Juntando no final esses pedaços a uma lista para serem processados
         mais tarde
         '''
-        nonlocal text_final                 # nonlocal faz com que esta variavel se refira a {text_final} definida na funcao exterior a esta
+        nonlocal text_final      # nonlocal faz com que esta variavel se refira a {text_final} definida na funcao exterior a esta
         cut = corta_texto(text, length)
         text_final.append(cut[0])
         if len(cut[1]) > length:
@@ -98,7 +98,7 @@ def justifica_texto(text: str, length: int) -> tuple:
     for i, word in enumerate(text_final):
         if len(word) != length and word != text_final[-1]:
             text_final[i] = insere_espacos(word, length)
-        else:                                                  # Executar isto quando chegar à linha final
+        else:                                               # Executar isto quando chegar à linha final
             text_final[i] += ' ' * (length - len(word))
                 
     return tuple(text_final)
@@ -130,14 +130,14 @@ def atribui_mandatos(votes: dict, deputies: int) -> list:
     quotients = calcula_quocientes(votes, deputies)
     
     for i in range(deputies):
-        new_letter = [p for p, value in votes_copy.items() if value == max(votes_copy.values())]  # Nota 1 (Consultar no fim do ficheiro)
+        new_letter = [p for p, value in votes_copy.items() if value == max(votes_copy.values())]  # Nota 2 (Consultar no fim do ficheiro)
         if len(new_letter) > 1:                                                                   # No caso de haver partidos com o mesmo num de votos
-            least_voted = min([votes[p] for p in new_letter])                                     # Nota 2 (Consultar no fim do ficheiro)
-            new_letter = filter(lambda dep: votes[dep] == least_voted, new_letter)                # Nota 3 (Consultar no fim do ficheiro)
+            least_voted = min([votes[p] for p in new_letter])                                     # Nota 3 (Consultar no fim do ficheiro)
+            new_letter = filter(lambda dep: votes[dep] == least_voted, new_letter)                # Nota 4 (Consultar no fim do ficheiro)
            
         new_letter = ''.join(new_letter) 
         votes_copy[new_letter] = quotients[new_letter][                                             
-            quotients[new_letter].index(votes_copy[new_letter]) + 1                               # Nota 4 (Consultar no fim do ficheiro)
+            quotients[new_letter].index(votes_copy[new_letter]) + 1                               # Nota 5 (Consultar no fim do ficheiro)
             ]   
         selected_deps.append(new_letter) 
                  
@@ -161,10 +161,8 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
     for j, i in votes.items():                                
         if (not isinstance(j, str)
             or not isinstance(i, dict) 
-            or not 'votos' in i.keys()                                                 # Erro se nao existir a key 'votos'
+            or not 'votos' in i.keys()                                              # Erro se nao existir a key 'votos'
             or not 'deputados' in i.keys()                                          # Erro se nao existir a key 'deputados'
-            #or not isinstance(list(i.keys())[0], str)                               # Erro se a key 'deputados' nao for str
-            #or not isinstance(list(i.keys())[1], str)                               # Erro se a key 'votos' nao for str
             or not isinstance(i['votos'], dict)                                     # Erro se nao existir a key 'votos'
             or not isinstance(i['deputados'], int)                                  # Erro se nao existir a key 'votos'
             or not any(i['votos'].values())                                         # Erro se nao existir a key 'votos'
@@ -173,7 +171,7 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
             raise ValueError('obtem_resultado_eleicoes: argumento invalido')
         
         for key, value in i['votos'].items():
-            if not isinstance(key, str) or not isinstance(value, int) or value < 0:
+            if not isinstance(key, str) or not isinstance(value, int) or value < 0:  # Erro se a keys (partidos, votos) sao do tipo (STR, INT) e se nao existe votos negativos
                 raise ValueError('obtem_resultado_eleicoes: argumento invalido')
         
     soma = dict.fromkeys(obtem_partidos(votes), 0)
@@ -196,6 +194,36 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
     return results
 
 
+def produto_interno(vet1: tuple, vet2: tuple) -> float:
+    product = 0
+    for i in range(len(vet1)):
+        product += vet1[i] * vet2[i]
+
+    return product
+
+def verifica_convergencia(matrix: tuple, c: tuple, x: tuple, prec: float) -> bool:
+    results = []
+    for i in range(len(matrix)):
+        if abs(produto_interno(matrix[i], x) - c[i]):
+            results.append(True)
+        else:
+            results.append(False)
+            
+    return all(results)
+
+
+def retira_zeros_diagonal(matrix: tuple, c: tuple) -> tuple:
+    pass
+
+
+def eh_diagonal_dominante(matrix: tuple) -> bool:
+    pass
+
+
+def resolve_sistema(matriz: tuple, c: tuple, precision: float) -> tuple:
+    pass
+
+
 
 
 
@@ -205,19 +233,21 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
 # NOTAS (Comentarios muitos grandes para caber ao lado de uma linha)
 ########
 
-# NOTA 1: É adicionado um novo elemento p à lista quando encontrar o valor maximo de votos atual
-#           correspondente a um dado circulo eleitoral. Ex: {'A': 12000, 'B': 7000, 'C': 3000} ->
-#           -> 'A' é adicionado à lista new_letter pois o seu valor é o máximo
+# NOTA 1: translate() converte os caracteres desejados em ' ' utilizando o dicionario {not_wanted_chars}
+#          .split() converte uma string em lista e adiciona apenas as sequencias de caracteres nao vazios
+#           .join() converte uma lista em string utilizando ' ' como separador
 
-# NOTA 2: Esta linha serve para descobrir dos partidos com votos iguais o que inicialmente foi menos votado
-#           .Ex {'A': 12000, 'B': 6000, 'C': 3000}  (Supondo que A foi escolhido) -> {'A': 6000, 'B': 6000, 'C': 3000} ->
-#           -> least_voted = 'B' porque entre A e B, B foi o partido com menos votos
 
-# NOTA 3: Depois da linha acima ter sido executada, precisamos de filtrar a lista new_letter e retirar todas as
+# NOTA 2: É adicionado um novo elemento p à lista quando encontrar o valor maximo de votos atual
+#           correspondente a um dado circulo eleitoral.
+
+
+# NOTA 3: Esta linha serve para descobrir dos partidos com votos iguais o que inicialmente foi menos votado
+
+
+# NOTA 4: Depois da linha acima ter sido executada, precisamos de filtrar a lista new_letter e retirar todas as
 #           letras exceto a least_voted. Utiliza-se a funcao filter().
-#               Argumento 1: funcao anonima (lambda) que quando retorna falsa retira o elemento da lista
-#                             que fez com que a funcao retornasse FALSE
-#               Argumento 2: A lista em questão
 
-# NOTA 4: O valor apos dividir os votos de um determinado partido é igual ao valor da lista de quocientes
+
+# NOTA 5: O valor apos dividir os votos de um determinado partido é igual ao valor da lista de quocientes
 #           dada por calcula_quocientes() cujo indice é o indice do valor atual + 1 

@@ -6,8 +6,15 @@ def produto_interno(vet1: tuple, vet2: tuple) -> float:
     return product
 
 def verifica_convergencia(matrix: tuple, c: tuple, x: tuple, prec: float) -> bool:
-    pass
-    
+    results = []
+    for i in range(len(matrix)):
+        if abs(produto_interno(matrix[i], x) - c[i]):
+            results.append(True)
+        else:
+            results.append(False)
+            
+    return all(results)
+
 
 def retira_zeros_diagonal(matrix: tuple, c: tuple) -> tuple:
     pass
