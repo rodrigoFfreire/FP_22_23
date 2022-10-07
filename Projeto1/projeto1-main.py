@@ -103,9 +103,11 @@ def justifica_texto(text: str, length: int) -> tuple:
                 
     return tuple(text_final)
 
+
 ###################################
 # PART 2 - Metodo de Hondt
 ###################################
+
 
 def calcula_quocientes(votes: dict, deputies: int) -> dict:
     '''Calcula os quocientes dos votos dependendo do valor de {deputies}
@@ -192,6 +194,11 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
     results.sort(key=lambda party: party[2], reverse=True)
     
     return results
+
+
+#############################################
+# PART 3 - Resolucao de sistemas de equacoes lineares
+#############################################
 
 
 def produto_interno(vet1: tuple, vet2: tuple) -> float:

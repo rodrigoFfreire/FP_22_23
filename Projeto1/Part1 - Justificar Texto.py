@@ -52,16 +52,9 @@ def insere_espacos(text: str, padding: int) -> str:
                     
     return ' '.join(text_splitted)
                 
- 
-def justifica_texto(text: str, length: int) -> tuple:
-    '''Função que pega em {text} e retorna o texto justificado
-    ou seja, todas as linhas do texto têm a mesma largura {length}
-    
-    Entre as linhas sao inseridas espaços de modo que a linha atinga
-    a desejada {largura}
-    A ultima linha não tem espaços entre as palavras mas sim no final
-    da linha
-    '''
+
+def raise_errors_JT(text: str, length: int, clean: str) -> None:
+    '''Funcao auxiliar para levantar erros para a funcao {justifica_texto}'''
     if not isinstance(text, str) or not isinstance(length, int):        # Erro se os argumentos nao forem do tipo correto
        raise ValueError('justifica texto: argumentos invalidos') 
     
@@ -72,6 +65,13 @@ def justifica_texto(text: str, length: int) -> tuple:
         
     if len(limpa_texto(text)) == 0 or length < max_word_size:           # Erro se o texto for vazio ou {length} for inferior à largura da maior palavra do texto
         raise ValueError('justifica texto: argumentos invalidos')
+
+ 
+def justifica_texto(text: str, length: int) -> tuple:
+    '''Função que pega em {text} e retorna o texto justificado
+    ou seja, todas as linhas do texto têm a mesma largura {length}
+    '''
+    raise_errors_JT(text, length, limpa_texto(text).split())
     
     text_clean = limpa_texto(text)
     text_final = []

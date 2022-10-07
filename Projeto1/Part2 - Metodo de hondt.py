@@ -42,30 +42,34 @@ def obtem_partidos(votes: dict) -> list:
     return list(dict.fromkeys(parties))    # Ao fazer esta conversao eliminamos elementos duplicados 
 
 
-def obtem_resultado_eleicoes(votes: dict) -> list:
-    '''Retorna os resultados das eleições
-    O numero de votos totais de cada partido
-    O numero de deputados de cada partido'''
+def raise_errors_MH(votes):
+    '''Funcao auxiliar para levantar erros para a funcao {obtem_resultado_eleicoes}'''
     if not isinstance(votes, dict) or not votes:
         raise ValueError('obtem_resultado_eleicoes: argumento invalido')            # Erro se o argumento nao for dict
     
     for j, i in votes.items():                                
-        if (not isinstance(j, str)
-            or not isinstance(i, dict) 
-            or not 'votos' in i.keys()                                                 # Erro se nao existir a key 'votos'
+        if (not isinstance(j, str)                                                  # Erro se key 'circulo eleitoral' nao for STR
+            or not isinstance(i, dict)                                              # Erro se valor da key 'ciruclo eleitoral' nao for DICT
+            or not 'votos' in i.keys()                                              # Erro se nao existir a key 'votos'
             or not 'deputados' in i.keys()                                          # Erro se nao existir a key 'deputados'
-            #or not isinstance(list(i.keys())[0], str)                               # Erro se a key 'deputados' nao for str
-            #or not isinstance(list(i.keys())[1], str)                               # Erro se a key 'votos' nao for str
-            or not isinstance(i['votos'], dict)                                     # Erro se nao existir a key 'votos'
-            or not isinstance(i['deputados'], int)                                  # Erro se nao existir a key 'votos'
-            or not any(i['votos'].values())                                         # Erro se nao existir a key 'votos'
-            or i['deputados'] < 1                                                   # Erro se nao existir a key 'votos'
+            or not isinstance(i['votos'], dict)                                     # Erro se o valor da key 'votos' nao for DICT
+            or not isinstance(i['deputados'], int)                                  # Erro se o valor da keu 'deputados' nao for INT
+            or not any(i['votos'].values())                                         # Erro se houver um ciruclo eleitoral com 0 votos totais
+            or i['deputados'] < 1                                                   # Erro se houver n de deputados negativos
             ):
             raise ValueError('obtem_resultado_eleicoes: argumento invalido')
         
         for key, value in i['votos'].items():
-            if not isinstance(key, str) or not isinstance(value, int) or value < 0:
+            if not isinstance(key, str) or not isinstance(value, int) or value < 0:  # Erro se a key 'partido' e o seu valor nao for STR, INT respetivamente (sendo que nao existem votos negativos) 
                 raise ValueError('obtem_resultado_eleicoes: argumento invalido')
+
+
+def obtem_resultado_eleicoes(votes: dict) -> list:
+    '''Retorna os resultados das eleições
+    O numero de votos totais de cada partido
+    O numero de deputados de cada partido
+    '''
+    raise_errors_MH(votes)    
         
     soma = dict.fromkeys(obtem_partidos(votes), 0)
     deputies = []
