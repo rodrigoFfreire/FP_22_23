@@ -1,6 +1,6 @@
 def calcula_quocientes(votes: dict, deputies: int) -> dict:
     '''Calcula os quocientes dos votos dependendo do valor de {deputies}
-    para o método de hondt
+    para o metodo de hondt
     '''
     vote_copy = votes.copy()
     for i in vote_copy:
@@ -65,7 +65,7 @@ def raise_errors_MH(votes):
 
 
 def obtem_resultado_eleicoes(votes: dict) -> list:
-    '''Retorna os resultados das eleições
+    '''Retorna os resultados das eleicoes
     O numero de votos totais de cada partido
     O numero de deputados de cada partido
     '''
@@ -89,13 +89,3 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
     results.sort(key=lambda party: party[2], reverse=True)
     
     return results
-
-# info = {
-#             'Endor':   {69: 7, 
-#                         'votos': {'A':12000, 'B':7500, 'C':5250, 'D':3000}},
-#             'Hoth':    {'deputados': 6, 
-#                         'votos': {'A':9000, 'B':11500, 'D':1500, 'E':5000}},
-#             'Tatooine': {'deputados': 3, 
-#                         'votos': {'A':3000, 'B':1900}}}
-
-#print(obtem_resultado_eleicoes(info))

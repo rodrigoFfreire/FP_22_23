@@ -1,6 +1,6 @@
 def limpa_texto(text: str) -> str:
-    '''Esta função pega no argumento {text} e remove os caracteres (\\t, \\n, \\v, \\f, \\r) 
-    Remove também espaços que aparecem mais do que duas vezes de seguida
+    '''Esta funcao pega no argumento {text} e remove os caracteres (\\t, \\n, \\v, \\f, \\r) 
+    Remove tambem espacos que aparecem mais do que duas vezes de seguida
     '''
     not_wanted_chars = {
         9: ' ',     # 9 -> \t
@@ -14,7 +14,7 @@ def limpa_texto(text: str) -> str:
 
 
 def corta_texto(text: str, size: int) -> tuple:
-    '''Esta função corta {text} em duas partes: \n
+    '''Esta funcao corta {text} em duas partes: \n
     1 -> Contem todo o texto que tem largura {size} sem cortar palavras ao meio
     2 -> Contem o resto de {text} que sobrou'''
     text_first = []
@@ -32,7 +32,7 @@ def corta_texto(text: str, size: int) -> tuple:
 
 
 def insere_espacos(text: str, padding: int) -> str:
-    '''Esta função insere espaços entre as palavras de forma homogénea de forma
+    '''Esta funcao insere espaços entre as palavras de forma homogenea de forma
     a que {text} atinga uma certa largura
     '''
     pad = padding - len(text)
@@ -68,17 +68,17 @@ def raise_errors_JT(text: str, length: int, clean: str) -> None:
 
  
 def justifica_texto(text: str, length: int) -> tuple:
-    '''Função que pega em {text} e retorna o texto justificado
-    ou seja, todas as linhas do texto têm a mesma largura {length}
+    '''Funcao que pega em {text} e retorna o texto justificado
+    ou seja, todas as linhas do texto teem a mesma largura {length}
     '''
     raise_errors_JT(text, length, limpa_texto(text).split())
     
     text_clean = limpa_texto(text)
     text_final = []
     def splitter(text: str, length: int) -> None:
-        '''Esta função utiliza recursão para ir cortando o texto em pedaços
-        de largura {length} até a largura do último pedaço ser inferior a
-        {length}. Juntando no final esses pedaços a uma lista para serem processados
+        '''Esta funcao utiliza recursão para ir cortando o texto em pedaços
+        de largura {length} ate a largura do ultimo pedaco ser inferior a
+        {length}. Juntando no final esses pedacos a uma lista para serem processados
         mais tarde
         '''
         nonlocal text_final                 # nonlocal faz com que esta variavel se refira a {text_final} definida na funcao exterior a esta
