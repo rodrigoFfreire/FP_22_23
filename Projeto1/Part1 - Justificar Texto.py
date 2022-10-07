@@ -2,18 +2,10 @@ def limpa_texto(text: str) -> str:
     '''Esta funcao pega no argumento {text} e remove os caracteres (\\t, \\n, \\v, \\f, \\r) 
     Remove tambem espacos que aparecem mais do que duas vezes de seguida
     '''
-    not_wanted_chars = {
-        9: ' ',     # 9 -> \t
-        10: ' ',    # 10 -> \n
-        11: ' ',    # 11 -> \v
-        12: ' ',    # 12 -> \f
-        13: ' '     # 13 -> \r
-    }
-    
-    return ' '.join(text.translate(not_wanted_chars).split())   # translate() converte caracteres utilizando {not_wanted_chars} | split() converte string em list | join() converte list em string e utiliza ' ' como separador
+    return ' '.join(text.split())  # split() converte string em list (ignorando caracteres nao visiveis) | join() converte list em string e utiliza ' ' como separador
 
 
-def corta_texto(text: str, size: int) -> tuple:
+def corta_texto(text: str, size: int) -> str:
     '''Esta funcao corta {text} em duas partes: \n
     1 -> Contem todo o texto que tem largura {size} sem cortar palavras ao meio
     2 -> Contem o resto de {text} que sobrou'''
@@ -22,7 +14,7 @@ def corta_texto(text: str, size: int) -> tuple:
     
     for word in text.split():               
         if len(word) > size:
-            break                   # Parar de adicionar texto a {text_first} se {word} exceder o limite restante de largura
+            break                # Parar de adicionar texto a {text_first} se {word} exceder o limite restante de largura
         else:
             text_first.append(word)
             text_rest.remove(word)
@@ -37,7 +29,7 @@ def insere_espacos(text: str, padding: int) -> str:
     '''
     pad = padding - len(text)
     text_splitted = text.split()
-    if len(text_splitted) < 2:      # Se uma sequencia for constituida por menos de 2 palavras
+    if len(text_splitted) < 2:  
         return text + (' ' * pad)
     else:
         while pad > 0:
@@ -85,7 +77,7 @@ def justifica_texto(text: str, length: int) -> tuple:
         cut = corta_texto(text, length)
         text_final.append(cut[0])
         if len(cut[1]) > length:
-            splitter(cut[1], length)
+            splitter(cut[1], length)        # Corta a segunda string devolvida por {corta_texto}
         else:
             text_final.append(cut[1])
             
