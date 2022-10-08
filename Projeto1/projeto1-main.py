@@ -274,6 +274,7 @@ def raise_errors_SSE(matrix: tuple, c: tuple, prec: float) -> tuple:
 
 
 def resolve_sistema(matrix: tuple, c: tuple, prec: float) -> tuple:
+    raise_errors_SSE(matrix, c, prec)
     x, current_precision = [0] * len(c), [1] * len(c)
 
     while max(current_precision) >= prec:
@@ -283,11 +284,6 @@ def resolve_sistema(matrix: tuple, c: tuple, prec: float) -> tuple:
             current_precision[i] = abs((x[i] - last_x) / x[i])
     
     return tuple(x)
-
-
-
-
-
 
 
 ########
