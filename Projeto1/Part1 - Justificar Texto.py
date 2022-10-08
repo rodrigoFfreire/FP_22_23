@@ -45,10 +45,10 @@ def insere_espacos(text: str, padding: int) -> str:
     return ' '.join(text_splitted)
                 
 
-def raise_errors_JT(text: str, length: int, clean: str) -> None:
+def raise_errors_JT(text: str, length: int) -> None:
     '''Funcao auxiliar para levantar erros para a funcao {justifica_texto}'''
     if not isinstance(text, str) or not isinstance(length, int):        # Erro se os argumentos nao forem do tipo correto
-       raise ValueError('justifica texto: argumentos invalidos') 
+       raise ValueError('justifica_texto: argumentos invalidos') 
     
     max_word_size = 0
     for word in limpa_texto(text).split():
@@ -56,14 +56,14 @@ def raise_errors_JT(text: str, length: int, clean: str) -> None:
             max_word_size = len(word)
         
     if len(limpa_texto(text)) == 0 or length < max_word_size:           # Erro se o texto for vazio ou {length} for inferior à largura da maior palavra do texto
-        raise ValueError('justifica texto: argumentos invalidos')
+        raise ValueError('justifica_texto: argumentos invalidos')
 
  
 def justifica_texto(text: str, length: int) -> tuple:
     '''Funcao que pega em {text} e retorna o texto justificado
     ou seja, todas as linhas do texto teem a mesma largura {length}
     '''
-    raise_errors_JT(text, length, limpa_texto(text).split())
+    raise_errors_JT(text, length)
     
     text_clean = limpa_texto(text)
     text_final = []
@@ -79,9 +79,11 @@ def justifica_texto(text: str, length: int) -> tuple:
         if len(cut[1]) > length:
             splitter(cut[1], length)        # Corta a segunda string devolvida por {corta_texto}
         else:
-            text_final.append(cut[1])
+            if len(cut[1]) != 0:            # nao adicionar o segundo resultado de {corta_texto} se for vazio
+                text_final.append(cut[1])
             
-    splitter(text_clean, length)       
+    splitter(text_clean, length)
+    print(text_final)       
     for i, word in enumerate(text_final):
         if len(word) != length and word != text_final[-1]:
             text_final[i] = insere_espacos(word, length)

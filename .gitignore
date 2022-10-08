@@ -1,6 +1,8 @@
 .vscode
 .DS_STORE
 Projeto1/test/
+Projeto1/*.pdf
+Projeto1/tempCodeRunnerFile.py
 Unit Tester
 .pytest_cache
 *.code-workspace
