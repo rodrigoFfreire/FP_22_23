@@ -17,7 +17,7 @@ def verifica_convergencia(matrix: tuple, c: tuple, x: tuple, prec: float) -> boo
     return all(results)
 
 
-def RTD_helper(matrix: tuple, j: int) -> tuple:
+def is_last(matrix: tuple, j: int) -> tuple:
     if j == len(matrix) - 1:
         return ()
     return matrix[j + 1:]
@@ -26,12 +26,12 @@ def retira_zeros_diagonal(matrix: tuple, c: tuple) -> tuple:
     matrix_res = matrix
     matrix_temp = ()
     vector_res = ()
-    for l in range(len(matrix_res)):
-        if matrix_res[l][l] == 0:
-            for j in range(l + 1, len(matrix_res)):
-                if matrix_res[j][l] != 0:
-                    matrix_temp = matrix_res[l:j] + (matrix_res[l], ) + RTD_helper(matrix_res, j)
-                    matrix_res = matrix_res[:l] + (matrix_res[j], ) + matrix_temp[1:]
+    for i in range(len(matrix_res)):
+        if matrix_res[i][i] == 0:
+            for j in range(i + 1, len(matrix_res)):
+                if matrix_res[j][i] != 0:
+                    matrix_temp = matrix_res[i:j] + (matrix_res[i], ) + is_last(matrix_res, j)
+                    matrix_res = matrix_res[:i] + (matrix_res[j], ) + matrix_temp[1:]
                     break
     for k in matrix_res:
         vector_res += (c[matrix.index(k)], )
@@ -40,12 +40,17 @@ def retira_zeros_diagonal(matrix: tuple, c: tuple) -> tuple:
 
 
 def eh_diagonal_dominante(matrix: tuple) -> bool:
-    pass
+    for i in range(len(matrix)):
+        if abs(matrix[i][i]) <= sum(matrix[i], -matrix[i][i]):
+            print(i, matrix[i])
+            return False
+    return True
 
 
 def resolve_sistema(matriz: tuple, c: tuple, precision: float) -> tuple:
     pass
 
 
-matrix = ((0, 1, 1, 1), (1, 0, 1, 1), (1, 1, 0, 1), (1, 1, 1, 0))
-print(retira_zeros_diagonal(matrix, (1, 2, 3, 4)))
+#matrix = ((0, 1, 1, 1), (1, 0, 1, 1), (1, 1, 0, 1), (1, 1, 1, 0))
+matrix = ((1, 0, 0), (0, 1, 0), (0, 1, 2))
+print(eh_diagonal_dominante(matrix))
