@@ -48,5 +48,36 @@ def eh_diagonal_dominante(matrix: tuple) -> bool:
     return True
 
 
-def resolve_sistema(matriz: tuple, c: tuple, prec: float) -> tuple:
-    pass
+def raise_errors_SSE(matrix: tuple, c: tuple, prec: float) -> tuple:
+    if (not isinstance(matrix, tuple) 
+        or not isinstance(c, tuple)
+        or not isinstance(prec, float)
+        or len(matrix) == 0
+        or len(c) == 0
+        or len(matrix) != len(c)
+    ):
+        raise ValueError('resolve_sistema: argumentos invalidos')
+    
+    for i in range(len(matrix)):
+        if (len(matrix[i]) != len(matrix)
+            or not isinstance(c[i], int())
+        ):
+            raise ValueError('resolve_sistema: argumentos invalidos')
+        for j in range(len(matrix[i])):
+            if not isinstance(j, int):
+                raise ValueError('resolve_sistema: argumentos invalidos')
+        
+    if not eh_diagonal_dominante(matrix):
+        raise ValueError('resolve_sistema: matriz nao diagonal dominante')
+
+
+def resolve_sistema(matrix: tuple, c: tuple, prec: float) -> tuple:
+    x, current_precision = [0] * len(c), [1] * len(c)
+
+    while max(current_precision) >= prec:
+        for i in range(len(c)):
+            last_x = x[i]
+            x[i] = x[i] + (c[i] - produto_interno(matrix[i], x)) / matrix[i][i]
+            current_precision[i] = abs((x[i] - last_x) / x[i])
+    
+    return tuple(x)
