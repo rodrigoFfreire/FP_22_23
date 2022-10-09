@@ -2,7 +2,7 @@ def limpa_texto(text: str) -> str:
     '''Esta funcao pega no argumento {text} e remove os caracteres (\\t, \\n, \\v, \\f, \\r) 
     Remove tambem espacos que aparecam mais do que duas vezes de seguida
     '''
-    return ' '.join(text.split())  # split() converte string em list (ignorando caracteres nao visiveise e ' ') | join() converte list em string e utiliza ' ' como separador
+    return ' '.join(text.split())  # split() converte string em list (ignorando caracteres nao visiveis e ' ') | join() converte list em string e utiliza ' ' como separador
 
 
 def corta_texto(text: str, size: int) -> str:
@@ -64,10 +64,8 @@ def justifica_texto(text: str, length: int) -> tuple:
     text_clean = limpa_texto(text)
     text_final = []
     def splitter(text: str, length: int) -> None:
-        '''Esta funcao utiliza recursão para ir cortando o texto em pedaços
-        de largura {length} ate a largura do ultimo pedaco ser inferior a
-        {length}. Juntando no final esses pedacos a uma lista para serem processados
-        mais tarde
+        '''Esta funcao utiliza recursão para ir cortando o texto em pedaçosde largura {length} 
+        ate a largura do ultimo pedaco ser inferior a{length}.
         '''
         nonlocal text_final                 # nonlocal faz com que esta variavel se refira a {text_final} definida na funcao exterior a esta
         cut = corta_texto(text, length)
@@ -75,7 +73,7 @@ def justifica_texto(text: str, length: int) -> tuple:
         if len(cut[1]) > length:
             splitter(cut[1], length)        # Corta a segunda string devolvida por {corta_texto} 
         else:
-            if len(cut[1]) != 0:            # nao adicionar o segundo resultado de {corta_texto} se for vazio
+            if len(cut[1]) != 0:            
                 text_final.append(cut[1])
             
     splitter(text_clean, length)     
@@ -83,15 +81,6 @@ def justifica_texto(text: str, length: int) -> tuple:
         if len(word) != length and word != text_final[-1]:
             text_final[i] = insere_espacos(word, length)
         else:                                               
-            text_final[i] += ' ' * (length - len(word))
+            text_final[i] += ' ' * (length - len(word))   # Adiciona espacos no final da frase da ultima frase
                 
     return tuple(text_final)
-
-
-cad = ('Computers are incredibly  \n\tfast,     \n\t\taccurate'
-               ' \n\t\t\tand  stupid.   \n    Human beings are incredibly  slow  '
-               'inaccurate, and brilliant. \n     Together  they  are powerful   '
-               'beyond imagination.')
-
-
-print(justifica_texto(cad, 40))
