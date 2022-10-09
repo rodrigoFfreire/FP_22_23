@@ -1,0 +1,3 @@
+Justifica Texto (Avg 10000) (Default demo): 0.00017~18 s
+Metodo de Hondt (Avg 10000) (Default demo): 0.00015~16 s
+Sol Sist Eqs Lin (Avg 10000) (Default demo): 0.00017~8 s
