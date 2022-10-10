@@ -55,16 +55,18 @@ def raise_errors_SSE(matrix: tuple, c: tuple, prec: float) -> tuple:
         or len(matrix) == 0
         or len(c) == 0
         or len(matrix) != len(c)
+        or not 0 < prec < 1
     ):
         raise ValueError('resolve_sistema: argumentos invalidos')
     
     for i in range(len(matrix)):
-        if (len(matrix[i]) != len(matrix)
-            or not isinstance(c[i], int())
+        if (not isinstance(matrix[i], tuple)
+            or len(matrix[i]) != len(matrix)
+            or (not isinstance(c[i], float) and not isinstance(c[i], int))
         ):
             raise ValueError('resolve_sistema: argumentos invalidos')
         for j in range(len(matrix[i])):
-            if not isinstance(j, int):
+            if (not isinstance(matrix[i][j], float) and not isinstance(matrix[i][j], int)):
                 raise ValueError('resolve_sistema: argumentos invalidos')
         
     if not eh_diagonal_dominante(matrix):
@@ -72,6 +74,8 @@ def raise_errors_SSE(matrix: tuple, c: tuple, prec: float) -> tuple:
 
 
 def resolve_sistema(matrix: tuple, c: tuple, prec: float) -> tuple:
+    raise_errors_SSE(matrix, c, prec)
+    
     x, current_precision = [0] * len(c), [1] * len(c)
 
     while max(current_precision) >= prec:

@@ -4,9 +4,9 @@
 
 def limpa_texto(text: str) -> str:
     '''Esta funcao pega no argumento {text} e remove os caracteres (\\t, \\n, \\v, \\f, \\r) 
-    Remove tambem espacos que aparecem mais do que duas vezes de seguida
+    Remove tambem espacos que aparecam mais do que duas vezes de seguida
     '''
-    return ' '.join(text.split())  # split() converte string em list (ignorando caracteres nao visiveis) | join() converte list em string e utiliza ' ' como separador
+    return ' '.join(text.split())  # split() converte string em list (ignorando caracteres nao visiveis e ' ') | join() converte list em string e utiliza ' ' como separador
 
 
 def corta_texto(text: str, size: int) -> str:
@@ -38,11 +38,9 @@ def insere_espacos(text: str, padding: int) -> str:
     else:
         while pad > 0:
             for i, word in enumerate(text_splitted):
-                if pad == 0:                            # Como o while so para apos o for acabar isto serve para parar imediatamente o loop
+                if pad == 0:                            # Como o while so para apos o for acabar isto serve para parar imediatamente o loop para prevenir espacos nao extra n desejados
                     break
-                if word == text_splitted[-1]:           # Nao inserir espacos na ultima palavra
-                    continue
-                else:
+                if word != text_splitted[-1]:           # Nao inserir espacos na ultima palavra
                     text_splitted[i] = word + ' '
                     pad -= 1
                     
@@ -51,16 +49,14 @@ def insere_espacos(text: str, padding: int) -> str:
 
 def raise_errors_JT(text: str, length: int) -> None:
     '''Funcao auxiliar para levantar erros para a funcao {justifica_texto}'''
-    if not isinstance(text, str) or not isinstance(length, int):        # Erro se os argumentos nao forem do tipo correto
+    if (not isinstance(text, str) or not isinstance(length, int)    # Erro se {text} nao for STR ou {length} nao for INT
+        or len(limpa_texto(text)) == 0                              # Erro se {text} for {vazio}
+    ): 
        raise ValueError('justifica_texto: argumentos invalidos') 
     
-    max_word_size = 0
     for word in limpa_texto(text).split():
-        if len(word) > max_word_size:
-            max_word_size = len(word)
-        
-    if len(limpa_texto(text)) == 0 or length < max_word_size:           # Erro se o texto for vazio ou {length} for inferior à largura da maior palavra do texto
-        raise ValueError('justifica_texto: argumentos invalidos')
+        if len(word) > length:
+            raise ValueError('justifica_texto: argumentos invalidos')   # Erro se houver uma palavra de largura maior que {length}      
 
  
 def justifica_texto(text: str, length: int) -> tuple:
@@ -72,27 +68,24 @@ def justifica_texto(text: str, length: int) -> tuple:
     text_clean = limpa_texto(text)
     text_final = []
     def splitter(text: str, length: int) -> None:
-        '''Esta funcao utiliza recursão para ir cortando o texto em pedaços
-        de largura {length} ate a largura do ultimo pedaco ser inferior a
-        {length}. Juntando no final esses pedacos a uma lista para serem processados
-        mais tarde
+        '''Esta funcao utiliza recursão para ir cortando o texto em pedaçosde largura {length} 
+        ate a largura do ultimo pedaco ser inferior a{length}.
         '''
         nonlocal text_final                 # nonlocal faz com que esta variavel se refira a {text_final} definida na funcao exterior a esta
         cut = corta_texto(text, length)
         text_final.append(cut[0])
         if len(cut[1]) > length:
-            splitter(cut[1], length)        # Corta a segunda string devolvida por {corta_texto}
+            splitter(cut[1], length)        # Corta a segunda string devolvida por {corta_texto} 
         else:
-            if len(cut[1]) != 0:            # nao adicionar o segundo resultado de {corta_texto} se for vazio
+            if len(cut[1]) != 0:            
                 text_final.append(cut[1])
             
-    splitter(text_clean, length)
-    print(text_final)       
+    splitter(text_clean, length)     
     for i, word in enumerate(text_final):
         if len(word) != length and word != text_final[-1]:
             text_final[i] = insere_espacos(word, length)
-        else:                                                  # Executar isto quando chegar à linha final
-            text_final[i] += ' ' * (length - len(word))
+        else:                                               
+            text_final[i] += ' ' * (length - len(word))   # Adiciona espacos no final da frase da ultima frase
                 
     return tuple(text_final)
 
@@ -146,7 +139,7 @@ def obtem_partidos(votes: dict) -> list:
     return list(dict.fromkeys(parties))    # Ao fazer esta conversao eliminamos elementos duplicados 
 
 
-def raise_errors_MH(votes):
+def raise_errors_MH(votes: dict) -> None:
     '''Funcao auxiliar para levantar erros para a funcao {obtem_resultado_eleicoes}'''
     if not isinstance(votes, dict) or not votes:
         raise ValueError('obtem_resultado_eleicoes: argumento invalido')            # Erro se o argumento nao for dict
@@ -257,16 +250,18 @@ def raise_errors_SSE(matrix: tuple, c: tuple, prec: float) -> tuple:
         or len(matrix) == 0
         or len(c) == 0
         or len(matrix) != len(c)
+        or not 0 < prec < 1
     ):
         raise ValueError('resolve_sistema: argumentos invalidos')
     
     for i in range(len(matrix)):
-        if (len(matrix[i]) != len(matrix)
-            or not isinstance(c[i], int())
+        if (not isinstance(matrix[i], tuple)
+            or len(matrix[i]) != len(matrix)
+            or (not isinstance(c[i], float) and not isinstance(c[i], int))
         ):
             raise ValueError('resolve_sistema: argumentos invalidos')
         for j in range(len(matrix[i])):
-            if not isinstance(j, int):
+            if (not isinstance(matrix[i][j], float) and not isinstance(matrix[i][j], int)):
                 raise ValueError('resolve_sistema: argumentos invalidos')
         
     if not eh_diagonal_dominante(matrix):
@@ -275,6 +270,7 @@ def raise_errors_SSE(matrix: tuple, c: tuple, prec: float) -> tuple:
 
 def resolve_sistema(matrix: tuple, c: tuple, prec: float) -> tuple:
     raise_errors_SSE(matrix, c, prec)
+    
     x, current_precision = [0] * len(c), [1] * len(c)
 
     while max(current_precision) >= prec:
@@ -285,6 +281,7 @@ def resolve_sistema(matrix: tuple, c: tuple, prec: float) -> tuple:
     
     return tuple(x)
 
+#print(resolve_sistema(((2, -1, -1), (2, -9, 7), (2, 5, -9)), (-8, 8, -6), -1e-20))
 
 ########
 # NOTAS (Comentarios muitos grandes para caber ao lado de uma linha)
@@ -307,4 +304,4 @@ def resolve_sistema(matrix: tuple, c: tuple, prec: float) -> tuple:
 
 
 # NOTA 5: O valor apos dividir os votos de um determinado partido é igual ao valor da lista de quocientes
-#           dada por calcula_quocientes() cujo indice é o indice do valor atual + 1 
+#           dada por calcula_quocientes() cujo indice é o indice do valor atual + 1
