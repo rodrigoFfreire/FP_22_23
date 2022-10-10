@@ -14,7 +14,7 @@ def corta_texto(text: str, size: int) -> str:
     
     for word in text.split():               
         if len(word) > size:
-            break                # Parar de adicionar texto a {text_first} se {word} exceder o limite restante de largura
+            return ' '.join(text_first), ' '.join(text_rest)    # Parar de adicionar texto a {text_first} se {word} exceder o limite restante de largura
         else:
             text_first.append(word)
             text_rest.remove(word)
@@ -77,10 +77,10 @@ def justifica_texto(text: str, length: int) -> tuple:
                 text_final.append(cut[1])
             
     splitter(text_clean, length)     
-    for i, word in enumerate(text_final):
-        if len(word) != length and word != text_final[-1]:
-            text_final[i] = insere_espacos(word, length)
+    for i, line in enumerate(text_final):
+        if len(line) != length and line != text_final[-1]:
+            text_final[i] = insere_espacos(line, length)
         else:                                               
-            text_final[i] += ' ' * (length - len(word))   # Adiciona espacos no final da frase da ultima frase
+            text_final[i] += ' ' * (length - len(line))   # Adiciona espacos no final da ultima frase
                 
     return tuple(text_final)
