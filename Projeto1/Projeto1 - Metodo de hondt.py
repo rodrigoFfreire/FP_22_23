@@ -21,14 +21,14 @@ def atribui_mandatos(votes: dict, deputies: int) -> list:
     quotients = calcula_quocientes(votes, deputies)
     
     for i in range(deputies):
-        new_letter = [p for p, value in votes_copy.items() if value == max(votes_copy.values())]  # Nota 1 (Consultar no fim do ficheiro)
-        if len(new_letter) > 1:                                                                   # No caso de haver partidos com o mesmo num de votos
-            least_voted = min([votes[p] for p in new_letter])                                     # Nota 2 (Consultar no fim do ficheiro)
-            new_letter = filter(lambda dep: votes[dep] == least_voted, new_letter)                # Nota 3 (Consultar no fim do ficheiro)
+        new_letter = [p for p, value in votes_copy.items() if value == max(votes_copy.values())]  # adicionar os deputados que tenham o maior valor de votos no momento
+        if len(new_letter) > 1:                                                                   # No caso de haver partidos com o mesmo n de votos
+            least_voted = min([votes[p] for p in new_letter])                                     # Escolhe dos partidos selecionados o que foi o menos votado
+            new_letter = filter(lambda dep: votes[dep] == least_voted, new_letter)                # filtrar a lista de modo a remover todos os partidos exceto o {least_voted}
            
         new_letter = ''.join(new_letter) 
         votes_copy[new_letter] = quotients[new_letter][                                             
-            quotients[new_letter].index(votes_copy[new_letter]) + 1                               # Nota 4 (Consultar no fim do ficheiro)
+            quotients[new_letter].index(votes_copy[new_letter]) + 1                 # Da lista dos quocientes obter o valor do proximo quociente de um determinado partido
             ]   
         selected_deps.append(new_letter) 
                  
@@ -42,20 +42,20 @@ def obtem_partidos(votes: dict) -> list:
     return list(dict.fromkeys(parties))    # Ao fazer esta conversao eliminamos elementos duplicados 
 
 
-def raise_errors_MH(votes):
+def raise_errors_MH(votes: dict) -> None:
     '''Funcao auxiliar para levantar erros para a funcao {obtem_resultado_eleicoes}'''
     if not isinstance(votes, dict) or not votes:
-        raise ValueError('obtem_resultado_eleicoes: argumento invalido')            # Erro se o argumento nao for dict
+        raise ValueError('obtem_resultado_eleicoes: argumento invalido')            # Erro se o argumento nao for dict or se o dicionario for vazio
     
     for j, i in votes.items():                                
-        if (not isinstance(j, str)                                                  # Erro se key 'circulo eleitoral' nao for STR
-            or not isinstance(i, dict)                                              # Erro se valor da key 'ciruclo eleitoral' nao for DICT
-            or not 'votos' in i.keys()                                              # Erro se nao existir a key 'votos'
-            or not 'deputados' in i.keys()                                          # Erro se nao existir a key 'deputados'
-            or not isinstance(i['votos'], dict)                                     # Erro se o valor da key 'votos' nao for DICT
-            or not isinstance(i['deputados'], int)                                  # Erro se o valor da keu 'deputados' nao for INT
+        if (not isinstance(j, str)
+            or not isinstance(i, dict)
+            or not 'votos' in i.keys()
+            or not 'deputados' in i.keys()
+            or not isinstance(i['votos'], dict)
+            or not isinstance(i['deputados'], int)
             or not any(i['votos'].values())                                         # Erro se houver um ciruclo eleitoral com 0 votos totais
-            or i['deputados'] < 1                                                   # Erro se houver n de deputados negativos
+            or i['deputados'] < 1                                                  
             ):
             raise ValueError('obtem_resultado_eleicoes: argumento invalido')
         
@@ -86,6 +86,6 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
     for i in obtem_partidos(votes):
         results.append((i, deputies.count(i), soma[i]))
         
-    results.sort(key=lambda party: party[2], reverse=True)
+    results.sort(key=lambda party: party[2], reverse=True)      #  Basta sortear pela soma pois nao pode haver um partido com menos votos e mais deputados que outro
     
     return results

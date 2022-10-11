@@ -1,4 +1,5 @@
 def produto_interno(vet1: tuple, vet2: tuple) -> float:
+    '''Retorna o produto interno entre dois vetores'''
     product = 0
     for i in range(len(vet1)):
         product += vet1[i] * vet2[i]
@@ -7,6 +8,8 @@ def produto_interno(vet1: tuple, vet2: tuple) -> float:
 
 
 def verifica_convergencia(matrix: tuple, c: tuple, x: tuple, prec: float) -> bool:
+    '''Verifica se o valor absoluto do erro de todas as equacoes eh inferior a {prec}
+    e retorna True ou False consoante'''
     results = []
     for i in range(len(matrix)):
         if abs(produto_interno(matrix[i], x) - c[i]) < prec:

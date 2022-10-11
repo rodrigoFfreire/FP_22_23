@@ -1,3 +1,7 @@
+# Rodrigo Freire
+# N 106485
+# rodrigofreitasfreire@tecnico.ulisboa.pt
+
 ###################################
 # PART 1 - Justificacao de texto
 ###################################
@@ -18,7 +22,7 @@ def corta_texto(text: str, size: int) -> str:
     
     for word in text.split():               
         if len(word) > size:
-            break                # Parar de adicionar texto a {text_first} se {word} exceder o limite restante de largura
+            return ' '.join(text_first), ' '.join(text_rest)    # Parar de adicionar texto a {text_first} se {word} exceder o limite restante de largura
         else:
             text_first.append(word)
             text_rest.remove(word)
@@ -81,11 +85,11 @@ def justifica_texto(text: str, length: int) -> tuple:
                 text_final.append(cut[1])
             
     splitter(text_clean, length)     
-    for i, word in enumerate(text_final):
-        if len(word) != length and word != text_final[-1]:
-            text_final[i] = insere_espacos(word, length)
+    for i, line in enumerate(text_final):
+        if len(line) != length and line != text_final[-1]:
+            text_final[i] = insere_espacos(line, length)
         else:                                               
-            text_final[i] += ' ' * (length - len(word))   # Adiciona espacos no final da frase da ultima frase
+            text_final[i] += ' ' * (length - len(line))   # Adiciona espacos no final da ultima frase
                 
     return tuple(text_final)
 
@@ -118,14 +122,14 @@ def atribui_mandatos(votes: dict, deputies: int) -> list:
     quotients = calcula_quocientes(votes, deputies)
     
     for i in range(deputies):
-        new_letter = [p for p, value in votes_copy.items() if value == max(votes_copy.values())]  # Nota 1 (Consultar no fim do ficheiro)
-        if len(new_letter) > 1:                                                                   # No caso de haver partidos com o mesmo num de votos
-            least_voted = min([votes[p] for p in new_letter])                                     # Nota 2 (Consultar no fim do ficheiro)
-            new_letter = filter(lambda dep: votes[dep] == least_voted, new_letter)                # Nota 3 (Consultar no fim do ficheiro)
+        new_letter = [p for p, value in votes_copy.items() if value == max(votes_copy.values())]  # adicionar os deputados que tenham o maior valor de votos no momento
+        if len(new_letter) > 1:                                                                   # No caso de haver partidos com o mesmo n de votos
+            least_voted = min([votes[p] for p in new_letter])                                     # Escolhe dos partidos selecionados o que foi o menos votado
+            new_letter = filter(lambda dep: votes[dep] == least_voted, new_letter)                # filtrar a lista de modo a remover todos os partidos exceto o {least_voted}
            
         new_letter = ''.join(new_letter) 
         votes_copy[new_letter] = quotients[new_letter][                                             
-            quotients[new_letter].index(votes_copy[new_letter]) + 1                               # Nota 4 (Consultar no fim do ficheiro)
+            quotients[new_letter].index(votes_copy[new_letter]) + 1                 # Da lista dos quocientes obter o valor do proximo quociente de um determinado partido
             ]   
         selected_deps.append(new_letter) 
                  
@@ -142,17 +146,17 @@ def obtem_partidos(votes: dict) -> list:
 def raise_errors_MH(votes: dict) -> None:
     '''Funcao auxiliar para levantar erros para a funcao {obtem_resultado_eleicoes}'''
     if not isinstance(votes, dict) or not votes:
-        raise ValueError('obtem_resultado_eleicoes: argumento invalido')            # Erro se o argumento nao for dict
+        raise ValueError('obtem_resultado_eleicoes: argumento invalido')            # Erro se o argumento nao for dict or se o dicionario for vazio
     
     for j, i in votes.items():                                
-        if (not isinstance(j, str)                                                  # Erro se key 'circulo eleitoral' nao for STR
-            or not isinstance(i, dict)                                              # Erro se valor da key 'ciruclo eleitoral' nao for DICT
-            or not 'votos' in i.keys()                                              # Erro se nao existir a key 'votos'
-            or not 'deputados' in i.keys()                                          # Erro se nao existir a key 'deputados'
-            or not isinstance(i['votos'], dict)                                     # Erro se o valor da key 'votos' nao for DICT
-            or not isinstance(i['deputados'], int)                                  # Erro se o valor da keu 'deputados' nao for INT
+        if (not isinstance(j, str)
+            or not isinstance(i, dict)
+            or not 'votos' in i.keys()
+            or not 'deputados' in i.keys()
+            or not isinstance(i['votos'], dict)
+            or not isinstance(i['deputados'], int)
             or not any(i['votos'].values())                                         # Erro se houver um ciruclo eleitoral com 0 votos totais
-            or i['deputados'] < 1                                                   # Erro se houver n de deputados negativos
+            or i['deputados'] < 1                                                  
             ):
             raise ValueError('obtem_resultado_eleicoes: argumento invalido')
         
@@ -183,7 +187,7 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
     for i in obtem_partidos(votes):
         results.append((i, deputies.count(i), soma[i]))
         
-    results.sort(key=lambda party: party[2], reverse=True)
+    results.sort(key=lambda party: party[2], reverse=True)      #  Basta sortear pela soma pois nao pode haver um partido com menos votos e mais deputados que outro
     
     return results
 
@@ -280,28 +284,3 @@ def resolve_sistema(matrix: tuple, c: tuple, prec: float) -> tuple:
             current_precision[i] = abs((x[i] - last_x) / x[i])
     
     return tuple(x)
-
-#print(resolve_sistema(((2, -1, -1), (2, -9, 7), (2, 5, -9)), (-8, 8, -6), -1e-20))
-
-########
-# NOTAS (Comentarios muitos grandes para caber ao lado de uma linha)
-########
-
-# NOTA 1: translate() converte os caracteres desejados em ' ' utilizando o dicionario {not_wanted_chars}
-#          .split() converte uma string em lista e adiciona apenas as sequencias de caracteres nao vazios
-#           .join() converte uma lista em string utilizando ' ' como separador
-
-
-# NOTA 2: É adicionado um novo elemento p à lista quando encontrar o valor maximo de votos atual
-#           correspondente a um dado circulo eleitoral.
-
-
-# NOTA 3: Esta linha serve para descobrir dos partidos com votos iguais o que inicialmente foi menos votado
-
-
-# NOTA 4: Depois da linha acima ter sido executada, precisamos de filtrar a lista new_letter e retirar todas as
-#           letras exceto a least_voted. Utiliza-se a funcao filter().
-
-
-# NOTA 5: O valor apos dividir os votos de um determinado partido é igual ao valor da lista de quocientes
-#           dada por calcula_quocientes() cujo indice é o indice do valor atual + 1
