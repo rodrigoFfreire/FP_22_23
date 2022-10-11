@@ -41,6 +41,16 @@ def filtra_pares(t: tuple) -> tuple:
     return result
 
 
+# Ex5
+def algarismos_pares(num: int) -> int:
+    return implode(filtra_pares(explode(num)))
+
+
+# Ex 6
+def num_para_seq_cod(num: int) -> tuple:
+    if num < 1: raise ValueError('num_para_seq_cod: argumento invalido')
+    return tuple([(i + 2) % 10 if i % 2 == 0 else (i - 2) % 10 for i in [int(i) for i in str(num)]])
+
 # Ex 7
 def amigas(c1: str, c2: str) -> bool:
     if not len(c1) == len(c2):
@@ -52,6 +62,21 @@ def amigas(c1: str, c2: str) -> bool:
             count += 1
             
     return (count / len(c1)) < 0.1
+
+
+# Ex 8
+def junta_ordenados(tup1: tuple, tup2: tuple) -> tuple:
+    result = ()
+    i1 = i2 = 0
+    while i1 < len(t1) or i2 < len(t2):
+        if i1 < len(t1) and (i2 >= len(t2) or t1[i1] <= t2[i2]):
+            result += (t1[i1],)
+            i1 += 1
+        else:
+            result += (t2[i2],)
+            i2 += 1
+    return result
+
 
 
 # Ex 10
@@ -77,6 +102,3 @@ def descodifica(text: str) -> str:
         result += text[i]
     
     return result + text[int(n_even(text)) - 1:]
-
-print(codifica('abcdef'))
-print(descodifica('acebdf'))
