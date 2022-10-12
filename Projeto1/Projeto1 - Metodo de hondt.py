@@ -86,6 +86,16 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
     for i in obtem_partidos(votes):
         results.append((i, deputies.count(i), soma[i]))
         
-    results.sort(key=lambda party: party[2], reverse=True)      #  Basta sortear pela soma pois nao pode haver um partido com menos votos e mais deputados que outro
+    results.sort(key=lambda party: (party[1], party[2]), reverse=True)      #  Sortear pelo numero de votos primeiro e depois pela soma em caso de empate
     
     return results
+
+info = {
+            'Endor':   {'deputados': 7,
+                        'votos': {'A': 12000, 'B': 7500, 'C': 5250, 'D': 3000}},
+            'Hoth':    {'deputados': 6,
+                        'votos': {'A': 9000, 'B': 11500, 'D': 1500, 'E': 5000}},
+            'Tatooine': {'deputados': 3,
+                         'votos': {'A': 3000, 'B': 1900}}}
+
+print(obtem_resultado_eleicoes(info))
