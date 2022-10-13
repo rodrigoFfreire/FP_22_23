@@ -71,7 +71,7 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
     '''
     raise_errors_MH(votes)    
         
-    soma = dict.fromkeys(obtem_partidos(votes), 0)
+    soma = {}.fromkeys(obtem_partidos(votes), 0)
     deputies = []
     for i in votes.values():
         value = 0
