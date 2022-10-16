@@ -17,14 +17,14 @@ def corta_texto(text: str, size: int) -> str:
     '''Esta funcao corta {text} em duas partes: \n
     1 -> Contem todo o texto que tem largura {size} sem cortar palavras ao meio
     2 -> Contem o resto de {text} que sobrou'''
-    text_first = []
+    text_first = ()
     text_rest = text.split()
     
     for word in text.split():               
         if len(word) > size:
             return ' '.join(text_first), ' '.join(text_rest)    # Parar de adicionar texto a {text_first} se {word} exceder o limite restante de largura
         else:
-            text_first.append(word)
+            text_first += (word, )
             text_rest.remove(word)
             size -= len(word) + 1
             
@@ -42,11 +42,11 @@ def insere_espacos(text: str, padding: int) -> str:
     else:
         while pad > 0:
             for i, word in enumerate(text_splitted):
-                if pad == 0:                            # Como o while so para apos o for acabar isto serve para parar imediatamente o loop para prevenir espacos nao extra n desejados
-                    break
                 if word != text_splitted[-1]:           # Nao inserir espacos na ultima palavra
                     text_splitted[i] = word + ' '
                     pad -= 1
+                if pad == 0:                            # Como o while so para apos o for acabar isto serve para parar imediatamente o loop para prevenir espacos nao extra n desejados
+                    break
                     
     return ' '.join(text_splitted)
                 
@@ -73,7 +73,7 @@ def justifica_texto(text: str, length: int) -> tuple:
     text_final = []
     def splitter(text: str, length: int) -> None:
         '''Esta funcao utiliza recursão para ir cortando o texto em pedaçosde largura {length} 
-        ate a largura do ultimo pedaco ser inferior a{length}.
+        ate a largura do ultimo pedaco ser inferior a {length}.
         '''
         nonlocal text_final                 # nonlocal faz com que esta variavel se refira a {text_final} definida na funcao exterior a esta
         cut = corta_texto(text, length)
@@ -172,7 +172,7 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
     '''
     raise_errors_MH(votes)    
         
-    soma = dict.fromkeys(obtem_partidos(votes), 0)
+    soma = {}.fromkeys(obtem_partidos(votes), 0)
     deputies = []
     for i in votes.values():
         value = 0
@@ -187,7 +187,7 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
     for i in obtem_partidos(votes):
         results.append((i, deputies.count(i), soma[i]))
         
-    results.sort(key=lambda party: party[2], reverse=True)      #  Basta sortear pela soma pois nao pode haver um partido com menos votos e mais deputados que outro
+    results.sort(key=lambda party: (party[1], party[2]), reverse=True)      #  Sortear pelo numero de votos primeiro e depois pela soma em caso de empate
     
     return results
 
@@ -198,6 +198,7 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
 
 
 def produto_interno(vet1: tuple, vet2: tuple) -> float:
+    '''Retorna o produto interno entre dois vetores'''
     product = 0
     for i in range(len(vet1)):
         product += vet1[i] * vet2[i]
@@ -206,6 +207,8 @@ def produto_interno(vet1: tuple, vet2: tuple) -> float:
 
 
 def verifica_convergencia(matrix: tuple, c: tuple, x: tuple, prec: float) -> bool:
+    '''Verifica se o valor absoluto do erro de todas as equacoes eh inferior a {prec}
+    e retorna True ou False consoante'''
     results = []
     for i in range(len(matrix)):
         if abs(produto_interno(matrix[i], x) - c[i]) < prec:
@@ -220,6 +223,7 @@ def swap(i: int, j: int, matrix: tuple) -> tuple:
     if i > j:
         return matrix[:j] + (matrix[i], ) + matrix[j + 1:i] + (matrix[j], ) + matrix[i + 1:]
     return matrix[:i] + (matrix[j], ) + matrix[i + 1:j] + (matrix[i], ) + matrix[j + 1:]
+
 
 def retira_zeros_diagonal(matrix: tuple, c: tuple) -> tuple:
     matrix_res = matrix

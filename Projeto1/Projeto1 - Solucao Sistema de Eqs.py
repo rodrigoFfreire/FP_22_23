@@ -25,6 +25,7 @@ def swap(i: int, j: int, matrix: tuple) -> tuple:
         return matrix[:j] + (matrix[i], ) + matrix[j + 1:i] + (matrix[j], ) + matrix[i + 1:]
     return matrix[:i] + (matrix[j], ) + matrix[i + 1:j] + (matrix[i], ) + matrix[j + 1:]
 
+
 def retira_zeros_diagonal(matrix: tuple, c: tuple) -> tuple:
     matrix_res = matrix
     vector_res = ()
