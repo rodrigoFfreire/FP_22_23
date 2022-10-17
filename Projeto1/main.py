@@ -218,12 +218,12 @@ def produto_interno(vet1: tuple, vet2: tuple) -> float:
     return sum(tuple(product))
 
 
-def verifica_convergencia(matrix: tuple, c: tuple, x: tuple, prec: float) -> bool:
+def verifica_convergencia(matrix: tuple, c: tuple, x: tuple, error: float) -> bool:
     '''Verifica se o valor absoluto do erro de todas as equacoes eh
-    inferior a {prec} e retorna True ou False consoante
+    inferior a {error} e retorna True ou False consoante
     '''
-    for i in range(len(matrix)):
-        if not abs(produto_interno(matrix[i], x) - c[i]) < prec:
+    for mi, ci in zip(matrix, c):
+        if not abs(produto_interno(mi, x) - ci) < error:
             return False
     return True
 
@@ -265,7 +265,7 @@ def eh_diagonal_dominante(matrix: tuple) -> bool:
     return True
 
 
-def raise_errors_SSE(matrix: tuple, c: tuple, prec: float) -> tuple:
+def raise_errors_SSE(matrix: tuple, c: tuple, error: float) -> tuple:
     '''Funcao que verifica erros para a funcao
     {resolve_sistema}
     '''
@@ -273,9 +273,9 @@ def raise_errors_SSE(matrix: tuple, c: tuple, prec: float) -> tuple:
             not c or    
             not isinstance(matrix, tuple) or
             not isinstance(c, tuple) or
-            not isinstance(prec, float) or
+            not isinstance(error, float) or
             len(matrix) != len(c) or
-            not 0 < prec < 1):
+            not 0 < error < 1):
         raise ValueError('resolve_sistema: argumentos invalidos')
 
     for i in range(len(matrix)):
@@ -293,18 +293,19 @@ def raise_errors_SSE(matrix: tuple, c: tuple, prec: float) -> tuple:
         raise ValueError('resolve_sistema: matriz nao diagonal dominante')
 
 
-def resolve_sistema(matrix: tuple, c: tuple, prec: float) -> tuple:
+def resolve_sistema(pre_matrix: tuple, pre_c: tuple, error: float) -> tuple:
     '''Resolve um sistema de eqs. lineares utilizando o metodo
     de jacobi
     '''
-    raise_errors_SSE(matrix, c, prec)
+    raise_errors_SSE(pre_matrix, pre_c, error)
+    matrix, c = retira_zeros_diagonal(pre_matrix, pre_c)
     # Criar listas com valores iniciais iguais de tamanho definido
-    x, current_precision = [0] * len(c), [1] * len(c)
+    x, current_error = [0] * len(c), [1] * len(c)
 
-    while max(current_precision) >= prec:
+    while max(current_error) >= error:
         for i in range(len(c)):
-            x_last = x[i]
+            x_prev = x[i]
             x[i] = x[i] + (c[i] - produto_interno(matrix[i], x)) / matrix[i][i]
-            current_precision[i] = abs((x[i] - x_last) / x[i])
+            current_error[i] = abs((x[i] - x_prev) / x[i])
 
     return tuple(x)
