@@ -124,13 +124,11 @@ def atribui_mandatos(votes: dict, deputies: int) -> list:
     for i in range(deputies):
         new_letter = [p for p, value in votes_copy.items() if value == max(votes_copy.values())]  # adicionar os deputados que tenham o maior valor de votos no momento
         if len(new_letter) > 1:                                                                   # No caso de haver partidos com o mesmo n de votos
-            least_voted = min([votes[p] for p in new_letter])                                     # Escolhe dos partidos selecionados o que foi o menos votado
+            least_voted = min([votes[p] for p in new_letter])                                    
             new_letter = filter(lambda dep: votes[dep] == least_voted, new_letter)                # filtrar a lista de modo a remover todos os partidos exceto o {least_voted}
            
         new_letter = ''.join(new_letter) 
-        votes_copy[new_letter] = quotients[new_letter][                                             
-            quotients[new_letter].index(votes_copy[new_letter]) + 1                 # Da lista dos quocientes obter o valor do proximo quociente de um determinado partido
-            ]   
+        votes_copy[new_letter] = votes[new_letter] / (votes[new_letter] / votes_copy[new_letter] + 1)   # obter o proximo quociente
         selected_deps.append(new_letter) 
                  
     return selected_deps
