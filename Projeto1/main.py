@@ -1,4 +1,4 @@
-# Rodrigo Freire
+# Rodrigo Freitas Freire
 # N 106485
 # rodrigofreitasfreire@tecnico.ulisboa.pt
 
@@ -7,35 +7,37 @@
 ###################################
 
 def limpa_texto(text: str) -> str:
-    '''Esta funcao pega no argumento {text} e remove os caracteres (\\t, \\n, \\v, \\f, \\r)
-    Remove tambem espacos que aparecam mais do que duas vezes de seguida
+    '''Esta funcao limpa o texto removendo espacos
+    duplicados em qualquer lugar da frase e remove
+    caracteres brancos ASCII
     '''
     return ' '.join(text.split())
 
 
 def corta_texto(text: str, size: int) -> str:
     '''Esta funcao corta {text} em duas partes: \n
-    1 -> Contem todo o texto que tem largura {size} sem cortar palavras ao meio
+    1 -> Contem todo o texto que tem largura {size} sem cortar palavras
+    ao meio
     2 -> Contem o resto de {text} que sobrou
     '''
-    text_first = ()
-    text_rest = text.split()
+    text1 = ()
+    text2 = text.split()
 
     for word in text.split():
         if len(word) > size:
-            # Parar de adicionar texto a {text_first} se {word} exceder a largura restante
-            return ' '.join(text_first), ' '.join(text_rest)
+            # Parar de adicionar texto a {text1} se {word} exceder a largura restante
+            return ' '.join(text1), ' '.join(text2)
         else:
-            text_first += (word, )
-            text_rest.remove(word)
+            text1 += (word, )
+            text2.remove(word)
             size -= len(word) + 1
 
-    return ' '.join(text_first), ' '.join(text_rest)
+    return ' '.join(text1), ' '.join(text2)
 
 
 def insere_espacos(text: str, padding: int) -> str:
-    '''Esta funcao insere espaços entre as palavras de forma homogenea de forma
-    a que {text} atinga uma certa largura
+    '''Esta funcao insere espaços entre as palavras de forma
+    homogenea para que {text} atinga uma certa largura
     '''
     pad = padding - len(text)
     text_splitted = text.split()
@@ -55,10 +57,11 @@ def insere_espacos(text: str, padding: int) -> str:
 
 
 def raise_errors_JT(text: str, length: int) -> None:
-    '''Funcao auxiliar para levantar erros para a funcao {justifica_texto}'''
+    '''Funcao que verificar erros para a funcao {justifica_texto}'''
     # Erro se {text} nao for STR ou {length} nao for INT ou o texto for vazio
-    if (not isinstance(text, str) or not isinstance(length, int) or
-            len(limpa_texto(text)) == 0):
+    if (not text or
+            not isinstance(text, str) or
+            not isinstance(length, int)):
         raise ValueError('justifica_texto: argumentos invalidos')
 
     for word in limpa_texto(text).split():
@@ -68,17 +71,16 @@ def raise_errors_JT(text: str, length: int) -> None:
 
 
 def justifica_texto(text: str, length: int) -> tuple:
-    '''Funcao que pega em {text} e retorna o texto justificado
-    ou seja, todas as linhas do texto teem a mesma largura {length}
-    '''
+    '''Funcao que pega em {text} e retorna o texto justificado'''
     raise_errors_JT(text, length)
 
     text_clean = limpa_texto(text)
     text_final = []
 
     def splitter(text: str, length: int) -> None:
-        '''Esta funcao utiliza recursão para ir cortando o texto em pedaçosde largura {length}
-        ate a largura do ultimo pedaco ser inferior a {length}.
+        '''Esta funcao utiliza recursao para ir cortando o texto em
+        pedacos de largura {length} ate a largura do ultimo pedaco
+        ser inferior a {length}.
         '''
         # nonlocal faz com que a variavel se refira a {text_final} definida na funcao exterior
         nonlocal text_final
@@ -107,8 +109,8 @@ def justifica_texto(text: str, length: int) -> tuple:
 
 
 def calcula_quocientes(votes: dict, deputies: int) -> dict:
-    '''Calcula os quocientes dos votos dependendo do valor de {deputies}
-    para o metodo de hondt
+    '''Calcula os quocientes dos votos dependendo do valor de
+    {deputies} para o metodo de hondt
     '''
     vote_copy = votes.copy()
     for i in vote_copy:
@@ -121,26 +123,26 @@ def calcula_quocientes(votes: dict, deputies: int) -> dict:
 
 
 def atribui_mandatos(votes: dict, deputies: int) -> list:
-    '''Retorna a lista dos deputados elegidos identificados pela letra correspondente
-    ao seu partido
+    '''Retorna a lista dos deputados elegidos
+    identificados pela letra correspondente ao partido
     '''
     votes_copy = votes.copy()
-    selected_deps = []
+    deps_selected = []
 
     for i in range(deputies):
         # adicionar os deputados que tenham o maior valor de votos no momento
-        new_letter = [p for p, value in votes_copy.items() if value == max(votes_copy.values())]
-        if len(new_letter) > 1:
-            least_voted = min([votes[p] for p in new_letter])
+        deps_new = [p for p, value in votes_copy.items() if value == max(votes_copy.values())]
+        if len(deps_new) > 1:
+            least_voted = min([votes[p] for p in deps_new])
             # remove todos os partidos exceto o {least_voted}
-            new_letter = filter(lambda dep: votes[dep] == least_voted, new_letter)
+            deps_new = filter(lambda dep: votes[dep] == least_voted, deps_new)
 
-        new_letter = ''.join(new_letter)
-        # obtem o proximo quociente considerando o atual
-        votes_copy[new_letter] = votes[new_letter] / (votes[new_letter] / votes_copy[new_letter] + 1)
-        selected_deps.append(new_letter)
+        deps_new = ''.join(deps_new)
+        # obtem o proximo quociente
+        votes_copy[deps_new] = votes[deps_new] / (votes[deps_new] / votes_copy[deps_new] + 1)
+        deps_selected.append(deps_new)
 
-    return selected_deps
+    return deps_selected
 
 
 def obtem_partidos(votes: dict) -> list:
@@ -151,7 +153,9 @@ def obtem_partidos(votes: dict) -> list:
 
 
 def raise_errors_MH(votes: dict) -> None:
-    '''Funcao auxiliar para levantar erros para a funcao {obtem_resultado_eleicoes}'''
+    '''Funcao que verifica erros para a funcao
+    {obtem_resultado_eleicoes}
+    '''
     # Erro se o argumento nao for dict or se o dicionario for vazio
     if not isinstance(votes, dict) or not votes:
         raise ValueError('obtem_resultado_eleicoes: argumento invalido')
@@ -209,49 +213,48 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
 
 def produto_interno(vet1: tuple, vet2: tuple) -> float:
     '''Retorna o produto interno entre dois vetores'''
-    product = 0
-    for i in range(len(vet1)):
-        product += vet1[i] * vet2[i]
+    product = map(lambda v1, v2: v1 * v2, vet1, vet2)
 
-    return product
+    return sum(tuple(product))
 
 
 def verifica_convergencia(matrix: tuple, c: tuple, x: tuple, prec: float) -> bool:
-    '''Verifica se o valor absoluto do erro de todas as equacoes eh inferior a {prec}
-    e retorna True ou False consoante'''
-    results = []
+    '''Verifica se o valor absoluto do erro de todas as equacoes eh
+    inferior a {prec} e retorna True ou False consoante
+    '''
     for i in range(len(matrix)):
-        if abs(produto_interno(matrix[i], x) - c[i]) < prec:
-            results.append(True)
-        else:
-            results.append(False)
-
-    return all(results)
+        if not abs(produto_interno(matrix[i], x) - c[i]) < prec:
+            return False
+    return True
 
 
 def swap(i: int, j: int, matrix: tuple) -> tuple:
+    '''Troca os elementos das posicoes {i} e {j} de um tuplo {matrix}'''
     if i > j:
         return matrix[:j] + (matrix[i], ) + matrix[j + 1:i] + (matrix[j], ) + matrix[i + 1:]
     return matrix[:i] + (matrix[j], ) + matrix[i + 1:j] + (matrix[i], ) + matrix[j + 1:]
 
 
 def retira_zeros_diagonal(matrix: tuple, c: tuple) -> tuple:
+    '''Troca linhas da matriz de modo a nao haver zeros nas diagonais'''
     matrix_res = matrix
-    vector_res = ()
+    vector_res = []
     for i in range(len(matrix)):
         if matrix_res[i][i] == 0:
             for j in range(len(matrix)):
                 if i != j and matrix_res[j][i] != 0 and matrix_res[i][j] != 0:
+                    # Trocar duas linhas {i} e {j}
                     matrix_res = swap(i, j, matrix_res)
                     break
 
-    for k in matrix_res:
-        vector_res += (c[matrix.index(k)], )
+    # Trocar a ordem das constantes
+    vector_res = [c[matrix.index(k)] for k in matrix_res]
 
-    return matrix_res, vector_res
+    return matrix_res, tuple(vector_res)
 
 
 def eh_diagonal_dominante(matrix: tuple) -> bool:
+    '''Verifica se o tuplo {matrix} eh diagonal dominante'''
     for i in range(len(matrix)):
         sum_non_diagonal = 0
         for j in range(len(matrix)):
@@ -263,11 +266,14 @@ def eh_diagonal_dominante(matrix: tuple) -> bool:
 
 
 def raise_errors_SSE(matrix: tuple, c: tuple, prec: float) -> tuple:
-    if (not isinstance(matrix, tuple) or
+    '''Funcao que verifica erros para a funcao
+    {resolve_sistema}
+    '''
+    if (not matrix or
+            not c or    
+            not isinstance(matrix, tuple) or
             not isinstance(c, tuple) or
             not isinstance(prec, float) or
-            len(matrix) == 0 or
-            len(c) == 0 or
             len(matrix) != len(c) or
             not 0 < prec < 1):
         raise ValueError('resolve_sistema: argumentos invalidos')
@@ -275,26 +281,30 @@ def raise_errors_SSE(matrix: tuple, c: tuple, prec: float) -> tuple:
     for i in range(len(matrix)):
         if (not isinstance(matrix[i], tuple) or
                 len(matrix[i]) != len(matrix) or
-                not isinstance(c[i], float) and not isinstance(c[i], int)):
+                not isinstance(c[i], float) and
+                not isinstance(c[i], int)):
             raise ValueError('resolve_sistema: argumentos invalidos')
+
         for j in range(len(matrix[i])):
             if (not isinstance(matrix[i][j], float) and
                     not isinstance(matrix[i][j], int)):
                 raise ValueError('resolve_sistema: argumentos invalidos')
-
     if not eh_diagonal_dominante(matrix):
         raise ValueError('resolve_sistema: matriz nao diagonal dominante')
 
 
 def resolve_sistema(matrix: tuple, c: tuple, prec: float) -> tuple:
+    '''Resolve um sistema de eqs. lineares utilizando o metodo
+    de jacobi
+    '''
     raise_errors_SSE(matrix, c, prec)
-
+    # Criar listas com valores iniciais iguais de tamanho definido
     x, current_precision = [0] * len(c), [1] * len(c)
 
     while max(current_precision) >= prec:
         for i in range(len(c)):
-            last_x = x[i]
+            x_last = x[i]
             x[i] = x[i] + (c[i] - produto_interno(matrix[i], x)) / matrix[i][i]
-            current_precision[i] = abs((x[i] - last_x) / x[i])
+            current_precision[i] = abs((x[i] - x_last) / x[i])
 
     return tuple(x)
