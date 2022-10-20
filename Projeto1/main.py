@@ -7,15 +7,14 @@
 ###################################
 
 def limpa_texto(text: str) -> str:
-    '''Esta funcao limpa o texto removendo espacos
-    duplicados em qualquer lugar da frase e remove
-    caracteres brancos ASCII
+    '''Esta funcao limpa o texto removendo espacos duplicados em qualquer lugar
+    da frase e remove caracteres brancos ASCII
     '''
     return ' '.join(text.split())
 
 
 def corta_texto(text: str, size: int) -> str:
-    '''Esta funcao corta {text} em duas partes: \n
+    '''Esta funcao corta {text} em duas partes:
     1 -> Contem todo o texto que tem largura {size} sem cortar palavras
     ao meio
     2 -> Contem o resto de {text} que sobrou
@@ -36,8 +35,8 @@ def corta_texto(text: str, size: int) -> str:
 
 
 def insere_espacos(text: str, padding: int) -> str:
-    '''Esta funcao insere espaços entre as palavras de forma
-    homogenea para que {text} atinga uma certa largura
+    '''Esta funcao insere espaços entre as palavras de forma homogenea para que
+    {text} atinga uma certa largura
     '''
     pad = padding - len(text)
     text_splitted = text.split()
@@ -73,14 +72,12 @@ def raise_errors_JT(text: str, length: int) -> None:
 def justifica_texto(text: str, length: int) -> tuple:
     '''Funcao que pega em {text} e retorna o texto justificado'''
     raise_errors_JT(text, length)
-
     text_clean = limpa_texto(text)
     text_final = []
 
     def splitter(text: str, length: int) -> None:
-        '''Esta funcao utiliza recursao para ir cortando o texto em
-        pedacos de largura {length} ate a largura do ultimo pedaco
-        ser inferior a {length}.
+        '''Esta funcao utiliza recursao para ir cortando o texto em pedacos de largura {length}
+        ate a largura do ultimo pedaco ser inferior a {length}.
         '''
         # nonlocal faz com que a variavel se refira a {text_final} definida na funcao exterior
         nonlocal text_final
@@ -161,12 +158,9 @@ def raise_errors_MH(votes: dict) -> None:
         raise ValueError('obtem_resultado_eleicoes: argumento invalido')
 
     for j, i in votes.items():
-        if (not isinstance(j, str) or
-                not isinstance(i, dict) or
-                'votos' not in i.keys() or
-                'deputados' not in i.keys() or
-                not isinstance(i['votos'], dict) or
-                not isinstance(i['deputados'], int) or
+        if (not isinstance(j, str) or not isinstance(i, dict) or
+                'votos' not in i.keys() or 'deputados' not in i.keys() or
+                not isinstance(i['votos'], dict) or not isinstance(i['deputados'], int) or
                 # Erro se houver um ciruclo eleitoral com 0 votos totais
                 not any(i['votos'].values()) or
                 i['deputados'] < 1):
@@ -222,8 +216,8 @@ def verifica_convergencia(matrix: tuple, c: tuple, x: tuple, error: float) -> bo
     '''Verifica se o valor absoluto do erro de todas as equacoes eh
     inferior a {error} e retorna True ou False consoante
     '''
-    for mi, ci in zip(matrix, c):
-        if not abs(produto_interno(mi, x) - ci) < error:
+    for matrix_i, c_i in zip(matrix, c):
+        if not abs(produto_interno(matrix_i, x) - c_i) < error:
             return False
     return True
 
@@ -238,19 +232,17 @@ def swap(i: int, j: int, matrix: tuple) -> tuple:
 def retira_zeros_diagonal(matrix: tuple, c: tuple) -> tuple:
     '''Troca linhas da matriz de modo a nao haver zeros nas diagonais'''
     matrix_res = matrix
-    vector_res = []
+    c_res = c
     for i in range(len(matrix)):
         if matrix_res[i][i] == 0:
             for j in range(len(matrix)):
                 if i != j and matrix_res[j][i] != 0 and matrix_res[i][j] != 0:
                     # Trocar duas linhas {i} e {j}
                     matrix_res = swap(i, j, matrix_res)
+                    c_res = swap(i, j, c_res)
                     break
 
-    # Trocar a ordem das constantes
-    vector_res = [c[matrix.index(k)] for k in matrix_res]
-
-    return matrix_res, tuple(vector_res)
+    return matrix_res, c_res
 
 
 def eh_diagonal_dominante(matrix: tuple) -> bool:
@@ -269,20 +261,15 @@ def raise_errors_SSE(matrix: tuple, c: tuple, error: float) -> tuple:
     '''Funcao que verifica erros para a funcao
     {resolve_sistema}
     '''
-    if (not matrix or
-            not c or    
-            not isinstance(matrix, tuple) or
-            not isinstance(c, tuple) or
-            not isinstance(error, float) or
-            len(matrix) != len(c) or
+    if (not matrix or not c or    
+            not isinstance(matrix, tuple) or not isinstance(c, tuple) or
+            not isinstance(error, float) or len(matrix) != len(c) or
             not 0 < error < 1):
         raise ValueError('resolve_sistema: argumentos invalidos')
 
     for i in range(len(matrix)):
-        if (not isinstance(matrix[i], tuple) or
-                len(matrix[i]) != len(matrix) or
-                not isinstance(c[i], float) and
-                not isinstance(c[i], int)):
+        if (not isinstance(matrix[i], tuple) or len(matrix[i]) != len(matrix) or
+                not isinstance(c[i], float) and not isinstance(c[i], int)):
             raise ValueError('resolve_sistema: argumentos invalidos')
 
         for j in range(len(matrix[i])):
