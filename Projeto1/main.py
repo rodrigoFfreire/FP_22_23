@@ -111,10 +111,10 @@ def calcula_quocientes(votes: dict, deputies: int) -> dict:
     '''
     vote_copy = votes.copy()
     for i in vote_copy:
-        quocientes = []
+        quot = []
         for j in range(1, deputies + 1):
-            quocientes.append(vote_copy[i] / j)
-        vote_copy.update({i: quocientes})
+            quot.append(vote_copy[i] / j)
+        vote_copy.update({i: quot})
 
     return vote_copy
 
