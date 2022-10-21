@@ -146,7 +146,7 @@ def atribui_mandatos(votes: dict, deputies: int) -> list:
 def obtem_partidos(votes: dict) -> list:
     '''Retorna a lista de todos os partidos'''
     parties = [j for i in votes.values() for j in i['votos']]
-    parties.sort(key=lambda p: p.lower()) # poem em ordem alfabetica
+    parties.sort() # poem em ordem alfabetica
 
     return list(dict.fromkeys(parties))  # Ao fazer esta conversao eliminamos elementos duplicados
 
