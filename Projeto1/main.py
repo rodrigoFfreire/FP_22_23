@@ -161,11 +161,10 @@ def raise_errors_MH(votes: dict) -> None:
 
     for j, i in votes.items():
         if (not isinstance(j, str) or not isinstance(i, dict) or
-                not j or not i or
-                'votos' not in i.keys() or 'deputados' not in i.keys() or
+                not len(i) == 2 or
+                not j or not i or 'votos' not in i.keys() or 'deputados' not in i.keys() or
                 not isinstance(i['votos'], dict) or not isinstance(i['deputados'], int) or
-                # Erro se houver um ciruclo eleitoral com 0 votos totais
-                not any(i['votos'].values()) or
+                not any(i['votos'].values()) or  # Caso de haver 0 votos totais num circulo
                 i['deputados'] < 1):
             raise ValueError('obtem_resultado_eleicoes: argumento invalido')
 
@@ -289,12 +288,15 @@ def resolve_sistema(pre_matrix: tuple, pre_c: tuple, error: float) -> tuple:
     '''
     raise_errors_SSE(pre_matrix, pre_c, error)
     matrix, c = retira_zeros_diagonal(pre_matrix, pre_c)
-    # Criar listas com valores iniciais iguais de tamanho definido
-    x, current_error = [0] * len(c), [1] * len(c)
- 
+    # Criar a lista de valores iniciais da solucao
+    x = [0] * len(c)
     while not verifica_convergencia(matrix, c, x, error):
         x_prev = x.copy()
         for i in range(len(c)):
-                x[i] = x_prev[i] + (c[i] - produto_interno(matrix[i], x_prev)) / matrix[i][i]
+            x[i] = x_prev[i] + (c[i] - produto_interno(matrix[i], x_prev)) / matrix[i][i]
 
     return tuple(x)
+
+
+A4, c4 = ((2, 1), (-3, 4)), (0.0001, 0.0004)
+print(resolve_sistema(A4, c4, 0.001))
