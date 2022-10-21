@@ -291,34 +291,10 @@ def resolve_sistema(pre_matrix: tuple, pre_c: tuple, error: float) -> tuple:
     matrix, c = retira_zeros_diagonal(pre_matrix, pre_c)
     # Criar listas com valores iniciais iguais de tamanho definido
     x, current_error = [0] * len(c), [1] * len(c)
-    j = 0
-    print(x, current_error)
+ 
     while not verifica_convergencia(matrix, c, x, error):
+        x_prev = x.copy()
         for i in range(len(c)):
-            x_prev = x[i]
-            x[i] = x[i] + (c[i] - produto_interno(matrix[i], x)) / matrix[i][i]
-            current_error[i] = abs((x[i] - x_prev) / x[i])
-            print(current_error)
-            print(x,'\n')
-            j += 1
-            if j > 20:
-                exit()
+                x[i] = x_prev[i] + (c[i] - produto_interno(matrix[i], x_prev)) / matrix[i][i]
 
     return tuple(x)
-
-# mat = ((8, -2, 2, 3), (1, -9, 2, -4), (-7, -1, -11, 2), (2, 0, 0, 3))
-# b = (3, 6, 4, -8)
-
-# print(resolve_sistema(mat, b, 1e-20))
-
-info = {
-            'Endor':   {'deputados': 7,
-                        'votos': {'PS': 12000, 'CH': 7500, 'L': 5250, 'PSD': 3000, 'PCP': 2980}},
-            'Hoth':    {'deputados': 6,
-                        'votos': {'CH': 9000, 'PS': 11500, 'BE': 1500, 'PSD': 5000, 'CDS': 4800}},
-            'Tatooine': {'deputados': 3,
-                         'votos': {'PAN': 3000, 'PS': 1900, 'IL': 1750}},
-            'nigga': {'deputados': 4,
-                      'votos': {'CH': 3400, 'PS': 2300, 'IL': 2200}}}
-
-print(obtem_resultado_eleicoes(info))
