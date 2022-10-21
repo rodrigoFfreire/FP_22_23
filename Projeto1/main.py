@@ -278,8 +278,6 @@ def raise_errors_SSE(matrix: tuple, c: tuple, error: float) -> tuple:
             if (not isinstance(matrix[i][j], float) and
                     not isinstance(matrix[i][j], int)):
                 raise ValueError('resolve_sistema: argumentos invalidos')
-    if not eh_diagonal_dominante(matrix):
-        raise ValueError('resolve_sistema: matriz nao diagonal dominante')
 
 
 def resolve_sistema(pre_matrix: tuple, pre_c: tuple, error: float) -> tuple:
@@ -288,6 +286,8 @@ def resolve_sistema(pre_matrix: tuple, pre_c: tuple, error: float) -> tuple:
     '''
     raise_errors_SSE(pre_matrix, pre_c, error)
     matrix, c = retira_zeros_diagonal(pre_matrix, pre_c)
+    if not eh_diagonal_dominante(matrix):
+        raise ValueError('resolve_sistema: matriz nao diagonal dominante')
     # Criar a lista de valores iniciais da solucao
     x = [0] * len(c)
     while not verifica_convergencia(matrix, c, x, error):
@@ -296,7 +296,3 @@ def resolve_sistema(pre_matrix: tuple, pre_c: tuple, error: float) -> tuple:
             x[i] = x_prev[i] + (c[i] - produto_interno(matrix[i], x_prev)) / matrix[i][i]
 
     return tuple(x)
-
-
-A4, c4 = ((2, 1), (-3, 4)), (0.0001, 0.0004)
-print(resolve_sistema(A4, c4, 0.001))
