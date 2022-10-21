@@ -125,22 +125,22 @@ def atribui_mandatos(votes: dict, deputies: int) -> list:
     identificados pela letra correspondente ao partido
     '''
     votes_copy = votes.copy()
-    deps_selected = []
+    mandates = []
 
     for i in range(deputies):
         # adicionar os deputados que tenham o maior valor de votos no momento
-        deps_new = [p for p, value in votes_copy.items() if value == max(votes_copy.values())]
-        if len(deps_new) > 1:
-            least_voted = min([votes[p] for p in deps_new])
+        new_letter = [p for p, value in votes_copy.items() if value == max(votes_copy.values())]
+        if len(new_letter) > 1:
+            least_voted = min([votes[p] for p in new_letter])
             # remove todos os partidos exceto o {least_voted}
-            deps_new = filter(lambda dep: votes[dep] == least_voted, deps_new)
+            new_letter = filter(lambda dep: votes[dep] == least_voted, new_letter)
 
-        deps_new = ''.join(deps_new)
+        new_letter = ''.join(new_letter)
         # obtem o proximo quociente
-        votes_copy[deps_new] = votes[deps_new] / (votes[deps_new] / votes_copy[deps_new] + 1)
-        deps_selected.append(deps_new)
+        votes_copy[new_letter] = votes[new_letter] / (votes[new_letter] / votes_copy[new_letter] + 1)
+        mandates.append(new_letter)
 
-    return deps_selected
+    return mandates
 
 
 def obtem_partidos(votes: dict) -> list:
@@ -181,21 +181,19 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
     '''
     raise_errors_MH(votes)
 
-    soma = {}.fromkeys(obtem_partidos(votes), 0)
+    vote_sum = {}.fromkeys(obtem_partidos(votes), 0)
     deputies = []
     for i in votes.values():
-        value = 0
         for j in obtem_partidos(votes):
             if j not in i['votos'].keys():
                 continue
-            soma.update({j: soma[j] + i['votos'][j]})
+            vote_sum.update({j: vote_sum[j] + i['votos'][j]})
 
         deputies += atribui_mandatos(i['votos'], i['deputados'])
 
     results = []
     for i in obtem_partidos(votes):
-        results.append((i, deputies.count(i), soma[i]))
-
+        results.append((i, deputies.count(i), vote_sum[i]))
     #  Sortear pelo numero de votos primeiro e depois pela soma em caso de empate
     results.sort(key=lambda party: (party[1], party[2]), reverse=True)
 
@@ -296,3 +294,15 @@ def resolve_sistema(pre_matrix: tuple, pre_c: tuple, error: float) -> tuple:
             x[i] = x_prev[i] + (c[i] - produto_interno(matrix[i], tuple(x_prev))) / matrix[i][i]
 
     return tuple(x)
+
+
+info = {
+            'Endor':   {'deputados': 7,
+                        'votos': {'A': 12000, 'B': 7500, 'C': 5250, 'D': 3000}},
+            'Hoth':    {'deputados': 6,
+                        'votos': {'A': 9000, 'B': 11500, 'D': 1500, 'E': 5000}},
+            'Tatooine': {'deputados': 3,
+                         'votos': {'A': 3000, 'B': 1900}}}
+
+
+print(obtem_resultado_eleicoes(info))
