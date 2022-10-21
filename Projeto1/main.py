@@ -293,6 +293,6 @@ def resolve_sistema(pre_matrix: tuple, pre_c: tuple, error: float) -> tuple:
     while not verifica_convergencia(matrix, c, x, error):
         x_prev = x.copy()
         for i in range(len(c)):
-            x[i] = x_prev[i] + (c[i] - produto_interno(matrix[i], x_prev)) / matrix[i][i]
+            x[i] = x_prev[i] + (c[i] - produto_interno(matrix[i], tuple(x_prev))) / matrix[i][i]
 
     return tuple(x)
