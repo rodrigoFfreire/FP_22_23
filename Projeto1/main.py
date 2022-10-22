@@ -22,7 +22,6 @@ def corta_texto(text: str, size: int) -> str:
     '''
     text1 = ()
     text2 = text.split()
-
     for word in text.split():
         if len(word) > size:
             # Parar de adicionar texto a {text1} se {word} exceder a largura restante
@@ -115,7 +114,7 @@ def calcula_quocientes(votes: dict, deputies: int) -> dict:
         quot = []
         for j in range(1, deputies + 1):
             quot.append(vote_copy[i] / j)
-        vote_copy.update({i: quot})
+        vote_copy.update({i: quot}) # .update() atualiza o valor de uma chave
 
     return vote_copy
 
@@ -207,6 +206,7 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
 
 def produto_interno(vet1: tuple, vet2: tuple) -> float:
     '''Retorna o produto interno entre dois vetores'''
+    # map gera um iteravel de acordo com a funcao que eh passada no argumento
     product = map(lambda v1, v2: v1 * v2, vet1, vet2)
 
     return float(sum(tuple(product)))
@@ -216,7 +216,7 @@ def verifica_convergencia(matrix: tuple, c: tuple, x: tuple, error: float) -> bo
     '''Verifica se o valor absoluto do erro de todas as equacoes eh
     inferior a {error} e retorna True ou False consoante
     '''
-    for matrix_i, c_i in zip(matrix, c):
+    for matrix_i, c_i in zip(matrix, c): # gera o par de tuplos composto pelos argumentos
         if abs(produto_interno(matrix_i, x) - c_i) >= error:
             return False
     return True
