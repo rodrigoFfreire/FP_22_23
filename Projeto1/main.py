@@ -158,7 +158,7 @@ def raise_errors_MH(votes: dict) -> None:
     # Erro se o argumento nao for dict ou se o dicionario for vazio
     if not isinstance(votes, dict) or not votes:
         raise ValueError('obtem_resultado_eleicoes: argumento invalido')
-
+    # Erro se a estrutura e o tipo de variaveis do dicionario nao estiverem corretos
     for j, i in votes.items():
         if (not isinstance(j, str) or not isinstance(i, dict) or
                 not len(i) == 2 or
@@ -194,7 +194,7 @@ def obtem_resultado_eleicoes(votes: dict) -> list:
     results = []
     for i in obtem_partidos(votes):
         results.append((i, deputies.count(i), vote_sum[i]))
-    #  Sortear pelo numero de votos primeiro e depois pela soma em caso de empate
+    # Ordernar pelo numero de mandatos primeiro e depois pela soma em caso de empate
     results.sort(key=lambda party: (party[1], party[2]), reverse=True)
 
     return results
@@ -261,17 +261,19 @@ def raise_errors_SSE(matrix: tuple, c: tuple, error: float) -> tuple:
     '''Funcao que verifica erros para a funcao
     {resolve_sistema}
     '''
+    # Erro se os tipos nao forem corretos, larguras diferentes entre matriz e vetor
+    # E precisao nao compreendida entre ]0,1[
     if (not matrix or not c or    
             not isinstance(matrix, tuple) or not isinstance(c, tuple) or
             not isinstance(error, float) or len(matrix) != len(c) or
             not 0 < error < 1):
         raise ValueError('resolve_sistema: argumentos invalidos')
-
+    # Erro se os tipos nao forem corretos, matrizes nao quadradas
     for i in range(len(matrix)):
         if (not isinstance(matrix[i], tuple) or len(matrix[i]) != len(matrix) or
                 not isinstance(c[i], float) and not isinstance(c[i], int)):
             raise ValueError('resolve_sistema: argumentos invalidos')
-
+        # Erro se os tipos nao forem corretos
         for j in range(len(matrix[i])):
             if (not isinstance(matrix[i][j], float) and
                     not isinstance(matrix[i][j], int)):
@@ -294,15 +296,3 @@ def resolve_sistema(pre_matrix: tuple, pre_c: tuple, error: float) -> tuple:
             x[i] = x_prev[i] + (c[i] - produto_interno(matrix[i], tuple(x_prev))) / matrix[i][i]
 
     return tuple(x)
-
-
-info = {
-            'Endor':   {'deputados': 7,
-                        'votos': {'A': 12000, 'B': 7500, 'C': 5250, 'D': 3000}},
-            'Hoth':    {'deputados': 6,
-                        'votos': {'A': 9000, 'B': 11500, 'D': 1500, 'E': 5000}},
-            'Tatooine': {'deputados': 3,
-                         'votos': {'A': 3000, 'B': 1900}}}
-
-
-print(obtem_resultado_eleicoes(info))
