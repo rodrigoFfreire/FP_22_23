@@ -85,4 +85,20 @@ def mesmas_horas(r1, r2):
 
 
 def escreve_relogio(r):
-    pass
+    if not eh_relogio(r):
+        raise ValueError('escreve_relogio: argumento invalido')
+    
+    def dig_format(t):
+        return '0' + str(t) if t < 10 else str(t)
+    
+    print(f'{dig_format(horas(r))}:{dig_format(minutos(r))}:{dig_format(segundos(r))}')
+    
+
+def depois_rel(r1, r2):
+    if not eh_relogio(r1) or not eh_relogio(r2):
+        raise ValueError('depois_rel: argumentos invalidos')
+    
+    def timestamp(r):
+        return horas(r) * 10000 + minutos(r) * 100 + segundos(r)
+    
+    return timestamp(r2) > timestamp(r1)
