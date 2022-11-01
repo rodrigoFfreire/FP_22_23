@@ -85,4 +85,4 @@ def mesmas_horas(r1, r2):
 
 
 def escreve_relogio(r):
-    
+    pass
