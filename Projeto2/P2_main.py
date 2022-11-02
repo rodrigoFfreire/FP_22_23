@@ -58,3 +58,14 @@ def geradores_iguais(g1, g2) -> bool:
 
 def gerador_para_str(g):
     print(f'xorshift{cria_copia_gerador(g)[0]}(s={obtem_estado(g)})')
+
+
+def gera_numero_aleatorio(g, n):
+    atualiza_estado(g)
+    return 1 + obtem_estado(g) % n
+
+
+def gera_carater_aleatorio(g, c):
+    atualiza_estado(g)
+    return chr(65 + obtem_estado(g) % (ord(c) - ord('A') + 1))
+
