@@ -57,7 +57,7 @@ def geradores_iguais(g1, g2) -> bool:
 
 
 def gerador_para_str(g):
-    print(f'xorshift{cria_copia_gerador(g)[0]}(s={obtem_estado(g)})')
+    return f'xorshift{cria_copia_gerador(g)[0]}(s={obtem_estado(g)})'
 
 
 def gera_numero_aleatorio(g, n):
@@ -69,3 +69,32 @@ def gera_carater_aleatorio(g, c):
     atualiza_estado(g)
     return chr(65 + obtem_estado(g) % (ord(c) - ord('A') + 1))
 
+
+
+
+def cria_coordenada(col, lin):
+    pass
+
+def obtem_coluna(c):
+    pass
+
+def obtem_linha(c):
+    pass
+
+def eh_coordenada(arg):
+    pass
+
+def coordenadas_iguais(c1, c2):
+    pass
+
+def coordenada_para_str(c):
+    pass
+
+def str_para_coordenada(s):
+    pass
+
+def obtem_coordenadas_vizinhas(c):
+    pass
+
+def obtem_coordenada_aleatoria(c, g):
+    pass
