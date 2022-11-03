@@ -110,11 +110,21 @@ def str_para_coordenada(s: str):
     return cria_coordenada(s_clean[0], int(s_clean[1:]))
 
 def obtem_coordenadas_vizinhas(c) -> tuple:
-    neighbors = ()
-    for l, i in zip(range(4), (obtem_linha(c) - 1, obtem_linha(c))):
-        pass 
+    neighbours = ()
+    def loop_settings(i):
+        return [ord(obtem_coluna(c)) - 1, ord(obtem_coluna(c)) + 2] if i == 1 else \
+            [ord(obtem_coluna(c)) + 1, ord(obtem_coluna(c)) + 2] if i == 2 else \
+            [ord(obtem_coluna(c)) + 1, ord(obtem_coluna(c)) - 2, -1] if i == 3 else \
+            [ord(obtem_coluna(c)) - 1, ord(obtem_coluna(c))]
                 
-    return neighbors
+    lines = (obtem_linha(c) - 1, obtem_linha(c), obtem_linha(c) + 1, obtem_linha(c))     
+    for i, l in zip(range(1, 5), lines):
+        for j in range(*loop_settings(i)):
+            try:
+                neighbours += (coordenada_para_str(cria_coordenada(chr(j), l)), )
+            except Exception:
+                continue
+    return neighbours
 
 def obtem_coordenada_aleatoria(c, g):
     pass
