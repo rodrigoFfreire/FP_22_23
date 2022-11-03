@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+# Rodrigo Freitas Freire
+# N 106485
+# rodrigofreitasfreire@tecnico.ulisboa.pt
+
+#################
+# TAD GERADOR
+#################
 def cria_gerador(b: int, s: int):
     if (not isinstance(b, int) or not isinstance(s, int) or
             s < 1 or
@@ -70,20 +78,24 @@ def gera_carater_aleatorio(g, c: str):
     return chr(65 + obtem_estado(g) % (ord(c) - ord('A') + 1))
 
 
-
-
-def cria_coordenada(col: str, lin: int):
+#################
+# TAD COORDENADA
+#################
+def cria_coordenada(col: str, lin: int) -> dict[str, int]:
     if (not isinstance(col, str) or not isinstance(lin, int) or
             not 65 <= ord(col) <= 90 or
             not 1 <= lin <= 99):
-        raise ValueError('cria_coordenada: argumento invalido')
+        raise ValueError('cria_coordenada: argumentos invalidos')
     return {'col': col, 'lin': lin}
+
 
 def obtem_coluna(c):
     return c['col']
 
+
 def obtem_linha(c):
     return c['lin']
+
 
 def eh_coordenada(arg: any):
     if not isinstance(arg, dict) or len(arg) != 2:
@@ -93,6 +105,7 @@ def eh_coordenada(arg: any):
         return False
     return True
 
+
 def coordenadas_iguais(c1, c2):
     if not eh_coordenada(c1) or not eh_coordenada(c2):
         return False
@@ -101,13 +114,16 @@ def coordenadas_iguais(c1, c2):
         return False
     return True
 
+
 def coordenada_para_str(c):
     return f'{obtem_coluna(c)}0{obtem_linha(c)}' if obtem_linha(c) < 10 \
         else f'{obtem_coluna(c)}{obtem_linha(c)}' 
 
+
 def str_para_coordenada(s: str):
     s_clean = s.replace('0', '')
     return cria_coordenada(s_clean[0], int(s_clean[1:]))
+
 
 def obtem_coordenadas_vizinhas(c) -> tuple:
     neighbours = ()
@@ -121,15 +137,18 @@ def obtem_coordenadas_vizinhas(c) -> tuple:
     for i, l in zip(range(1, 5), lines):
         for j in range(*loop_settings(i)):
             try:
-                neighbours += (coordenada_para_str(cria_coordenada(chr(j), l)), )
+                neighbours += (cria_coordenada(chr(j), l), )
             except Exception:
                 continue
     return neighbours
 
 def obtem_coordenada_aleatoria(c, g):
-    pass
+    return cria_coordenada(
+        gera_carater_aleatorio(g, obtem_coluna(c)), 
+        gera_numero_aleatorio(g, obtem_linha(c))
+    )
 
 
-
-c1 = cria_coordenada('C', 5)
-print(obtem_coordenadas_vizinhas(c1))
+#################
+# TAD PARCELA
+#################
