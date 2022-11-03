@@ -1,9 +1,9 @@
 def cria_gerador(b: int, s: int):
     if (not isinstance(b, int) or not isinstance(s, int) or
-            s < 0 or
+            s < 1 or
             b != 32 and b != 64):
         raise ValueError('cria_gerador: argumentos invalidos')
-    return [b, s]
+    return {'b': b, 's': s}
 
 
 def cria_copia_gerador(g):
@@ -11,11 +11,11 @@ def cria_copia_gerador(g):
 
 
 def obtem_estado(g) -> int:
-    return g[1]
+    return g['s']
 
 
 def define_estado(g, s: int) -> int:
-    g[1] = s
+    g['s'] = s
     return s
 
 
@@ -34,15 +34,15 @@ def atualiza_estado(g) -> int:
             seed ^= (seed << 17) & 0xFFFFFFFFFFFFFFFF
             define_estado(g, seed)
             return seed
-    return xorshift(g, cria_copia_gerador(g)[0])
+    return xorshift(g, cria_copia_gerador(g)['b'])
 
 
-def eh_gerador(g: any) -> bool:
-    if not isinstance(g, list) or len(g) != 2:
+def eh_gerador(arg: any) -> bool:
+    if not isinstance(arg, dict) or len(arg) != 2:
         return False
-    if (cria_copia_gerador(g)[0] != 32 and 
-            cria_copia_gerador(g)[0] != 64 or
-            obtem_estado(g) < 0):
+    if (cria_copia_gerador(arg)['b'] != 32 and 
+            cria_copia_gerador(arg)['b'] != 64 or
+            obtem_estado(arg) < 1):
         return False
     return True
 
@@ -50,51 +50,76 @@ def eh_gerador(g: any) -> bool:
 def geradores_iguais(g1, g2) -> bool:
     if not eh_gerador(g1) or not eh_gerador(g2):
         return False
-    if (cria_copia_gerador(g1)[0], cria_copia_gerador(g1)[1]) != \
-            (cria_copia_gerador(g1)[0], cria_copia_gerador(g1)[1]):
+    if (cria_copia_gerador(g1)['b'], obtem_estado(g1)) != \
+            (cria_copia_gerador(g1)['b'], obtem_estado(g1)):
         return False
     return True
 
 
 def gerador_para_str(g):
-    return f'xorshift{cria_copia_gerador(g)[0]}(s={obtem_estado(g)})'
+    return f'xorshift{cria_copia_gerador(g)["b"]}(s={obtem_estado(g)})'
 
 
-def gera_numero_aleatorio(g, n):
+def gera_numero_aleatorio(g, n: int):
     atualiza_estado(g)
     return 1 + obtem_estado(g) % n
 
 
-def gera_carater_aleatorio(g, c):
+def gera_carater_aleatorio(g, c: str):
     atualiza_estado(g)
     return chr(65 + obtem_estado(g) % (ord(c) - ord('A') + 1))
 
 
 
 
-def cria_coordenada(col, lin):
-    pass
+def cria_coordenada(col: str, lin: int):
+    if (not isinstance(col, str) or not isinstance(lin, int) or
+            not 65 <= ord(col) <= 90 or
+            not 1 <= lin <= 99):
+        raise ValueError('cria_coordenada: argumento invalido')
+    return {'col': col, 'lin': lin}
 
 def obtem_coluna(c):
-    pass
+    return c['col']
 
 def obtem_linha(c):
-    pass
+    return c['lin']
 
-def eh_coordenada(arg):
-    pass
+def eh_coordenada(arg: any):
+    if not isinstance(arg, dict) or len(arg) != 2:
+        return False
+    if (not 65 <= ord(obtem_coluna(arg)) <= 90 or
+            not 1 <= obtem_linha(arg) <= 99):
+        return False
+    return True
 
 def coordenadas_iguais(c1, c2):
-    pass
+    if not eh_coordenada(c1) or not eh_coordenada(c2):
+        return False
+    if (obtem_coluna(c1), obtem_linha(c1)) != \
+            (obtem_coluna(c2), obtem_linha(c2)):
+        return False
+    return True
 
 def coordenada_para_str(c):
-    pass
+    return f'{obtem_coluna(c)}0{obtem_linha(c)}' if obtem_linha(c) < 10 \
+        else f'{obtem_coluna(c)}{obtem_linha(c)}' 
 
-def str_para_coordenada(s):
-    pass
+def str_para_coordenada(s: str):
+    s_clean = s.replace('0', '')
+    return cria_coordenada(s_clean[0], int(s_clean[1:]))
 
-def obtem_coordenadas_vizinhas(c):
-    pass
+def obtem_coordenadas_vizinhas(c) -> tuple:
+    neighbors = ()
+    for l, i in zip(range(4), (obtem_linha(c) - 1, obtem_linha(c))):
+        pass 
+                
+    return neighbors
 
 def obtem_coordenada_aleatoria(c, g):
     pass
+
+
+
+c1 = cria_coordenada('C', 5)
+print(obtem_coordenadas_vizinhas(c1))
