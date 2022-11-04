@@ -51,15 +51,15 @@ def acumula(lst, fn):
 # Ex5
 def soma_quadrados_impares(lst):
     return acumula(
-        transforma(
-            filtra(
-                lst,
-                lambda x: x % 2 != 0
-            ),
-            lambda x: x * x
-        ),
-        lambda x, y: x + y
-    )
+                transforma(
+                    filtra(
+                        lst,
+                        lambda x: x % 2 != 0
+                    ),
+                    lambda x: x * x
+                ),
+                lambda x, y: x + y
+            )
 
 
 # Ex6
