@@ -3,7 +3,6 @@
 # N 106485
 # rodrigofreitasfreire@tecnico.ulisboa.pt
 
-
 #################
 # TAD GERADOR
 #################
@@ -32,7 +31,7 @@ def define_estado(g, s: int) -> int:
 
 def atualiza_estado(g) -> int:
     def xorshift(g, b):
-        seed = obtem_estado(g)
+        seed = g['s']
         if b == 32:
             seed ^= (seed << 13) & 0xFFFFFFFF
             seed ^= (seed >> 17) & 0xFFFFFFFF
@@ -45,7 +44,7 @@ def atualiza_estado(g) -> int:
             seed ^= (seed << 17) & 0xFFFFFFFFFFFFFFFF
             define_estado(g, seed)
             return seed
-    return xorshift(g, cria_copia_gerador(g)['b'])
+    return xorshift(g, g['b'])
 
 
 def eh_gerador(arg: any) -> bool:
@@ -63,7 +62,7 @@ def geradores_iguais(g1, g2) -> bool:
     if not eh_gerador(g1) or not eh_gerador(g2):
         return False
     if (cria_copia_gerador(g1)['b'], obtem_estado(g1)) != \
-            (cria_copia_gerador(g1)['b'], obtem_estado(g1)):
+            (cria_copia_gerador(g2)['b'], obtem_estado(g2)):
         return False
     return True
 
@@ -82,11 +81,12 @@ def gera_carater_aleatorio(g, c: str) -> str:
     return chr(65 + obtem_estado(g) % (ord(c) - ord('A') + 1))
 
 
-#################
+##################
 # TAD COORDENADA
-#################
+##################
 def cria_coordenada(col: str, lin: int):
     if (not isinstance(col, str) or not isinstance(lin, int) or
+            len(col) != 1 or
             not 65 <= ord(col) <= 90 or
             not 1 <= lin <= 99):
         raise ValueError('cria_coordenada: argumentos invalidos')
@@ -182,7 +182,6 @@ def desmarca_parcela(p):
 
 
 def esconde_mina(p):
-    p['state'] = 'hidden'
     p['mined'] = True
     return p
 
@@ -247,6 +246,7 @@ def alterna_bandeira(p) -> bool:
 #################
 def cria_campo(c: str, l: int):
     if (not isinstance(c, str) or not isinstance(l, int) or
+            len(c) != 1 or
             not 65 <= ord(c) <= 90 or
             not 1 <= l <= 99):
         raise ValueError('cria_campo: argumentos invalidos')
@@ -259,7 +259,7 @@ def cria_campo(c: str, l: int):
     return field
 
 def cria_copia_campo(m):
-    return m.copy()
+    return {i: m[i].copy() for i in m}
 
 
 def obtem_ultima_coluna(m):
@@ -289,7 +289,7 @@ def obtem_coordenadas(m, s: str) -> tuple:
 
     
 def eh_coordenada_do_campo(m, c) -> bool:
-    return eh_campo(m) and coordenada_para_str(c) in m
+    return coordenada_para_str(c) in m
 
 
 def in_bounds_and_is_bomb(m, c):
@@ -352,9 +352,9 @@ def coloca_minas(m, c, g, n):
     
     new_coord = generate_coord(g)
     for i in range(n):
-        while (new_coord in not_allowed_coords or m[coordenada_para_str(new_coord)]['mined'] == True):
+        while (new_coord in not_allowed_coords or eh_parcela_minada(obtem_parcela(m, new_coord)) == True):
             new_coord = generate_coord(g)
-        m[coordenada_para_str(new_coord)]['mined'] = True
+        esconde_mina(obtem_parcela(m, new_coord))
     return m
             
 
@@ -368,13 +368,14 @@ def empty_near_bombs_filter(m, c1, c1_last, c1_new, c):
         c not in (*c1, *c1_last, *c1_new) and \
         eh_parcela_tapada(obtem_parcela(m, c)) 
 
+
 def limpa_campo(m, c):
     if not eh_parcela_tapada(obtem_parcela(m, c)): return m
-    if eh_parcela_minada(obtem_parcela(m, c)) or obtem_numero_minas_vizinhas(m, c) >= 1:
+    if (eh_parcela_minada(obtem_parcela(m, c)) or obtem_numero_minas_vizinhas(m, c) >= 1):
         limpa_parcela(obtem_parcela(m, c))
         return m
-    
-    def get_clean_cells(m, c0, c1, c0_last, c1_last):
+
+    def get_clean_cells(m, c0, c1, c0_last, c1_last, p: int):
         if (*c0, *c1) == ():
             return c0_last + c1_last
         
@@ -382,20 +383,20 @@ def limpa_campo(m, c):
         for i in c0:
             v = obtem_coordenadas_vizinhas(i)
             c0_new += tuple(filter(lambda c: empty_no_bombs_filter(m, c0, c0_last, c0_new, c), v))
-            c1_new += tuple(filter(lambda c: empty_near_bombs_filter(m, c1, c1_last, c1_new, c), v)) 
-        return get_clean_cells(m, c0_new, c1_new, c0 + c0_last, c1 + c1_last)
-    results = get_clean_cells(m, (c, ), (), (), ())
+            c1_new += tuple(filter(lambda c: empty_near_bombs_filter(m, c1, c1_last, c1_new, c), v))
+        return get_clean_cells(m, c0_new, c1_new, c0 + c0_last, c1 + c1_last, p + 1)
+    results = get_clean_cells(m, (c, ), (), (), (), 1)
+
     for i in results:
         limpa_parcela(obtem_parcela(m, i))
-        
+    
     return m
 
 
 def jogo_ganho(m) -> bool:
-    for i in m.values():
-        if not eh_parcela_minada(i) and not eh_parcela_limpa(i):
-            return False
-    return True
+    mined_cells = obtem_coordenadas(m, 'minadas')
+    hidden_or_flagged = obtem_coordenadas(m, 'marcadas') + obtem_coordenadas(m, 'tapadas')
+    return len(mined_cells) == len(hidden_or_flagged)
 
 
 def until_valid_coordenate(m, c):
@@ -412,7 +413,7 @@ def until_valid_coordenate(m, c):
 
 
 def turno_jogador(m) -> bool:
-    option, coord, flags, bombs = '', '', len(obtem_coordenadas(m, 'marcadas')), len(obtem_coordenadas(m, 'minadas'))
+    option, coord = '', ''
     while option != 'L' and option != 'M':
         option = input('Escolha uma ação, [L]impar ou [M]arcar:')
     coord = until_valid_coordenate(m, coord)
@@ -420,11 +421,7 @@ def turno_jogador(m) -> bool:
     if option == 'L':
         limpa_campo(m, coord)
         return not eh_parcela_minada(obtem_parcela(m, coord))
-    if flags < bombs:
-        alterna_bandeira(obtem_parcela(m, coord))
-    else:
-        if eh_parcela_marcada(obtem_parcela(m, coord)):
-            alterna_bandeira(obtem_parcela(m, coord))
+    alterna_bandeira(obtem_parcela(m, coord))
                 
     return True
 
@@ -454,6 +451,9 @@ def minas(c: str, l: int, n: int, d: int, s: int) -> bool:
             not 1 <= n < (ord(c) - 64) * l or d != 32 and d != 64 or
             s < 1):
         raise ValueError('minas: argumentos invalidos')
+    area = (ord(c) - 64 ) * l
+    if area < 6:
+        raise ValueError('minas: argumentos invalidos')
     
     field, generator, init_coord = cria_campo(c, l), cria_gerador(d, s), ''
     print(f'   [Bandeiras 0/{n}]')
@@ -464,6 +464,6 @@ def minas(c: str, l: int, n: int, d: int, s: int) -> bool:
     limpa_campo(field, init_coord)
     
     return main_loop(field, n)
-    
-    
-#minas('Z', 5, 10, 32, 15)
+
+
+minas('Z', 10, 16, 64, 2454)
