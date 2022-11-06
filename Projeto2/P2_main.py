@@ -3,8 +3,6 @@
 # N 106485
 # rodrigofreitasfreire@tecnico.ulisboa.pt
 
-from functools import reduce
-
 
 #################
 # TAD GERADOR
@@ -13,6 +11,8 @@ def cria_gerador(b: int, s: int):
     if (not isinstance(b, int) or not isinstance(s, int) or
             s < 1 or
             b != 32 and b != 64):
+        raise ValueError('cria_gerador: argumentos invalidos')
+    if s > 2**b - 1:
         raise ValueError('cria_gerador: argumentos invalidos')
     return {'b': b, 's': s}
 
@@ -276,7 +276,7 @@ def obtem_parcela(m, c):
 
 def obtem_coordenadas(m, s: str) -> tuple:
     def get_coords(m, fn):
-        return tuple([i for i in m if fn(m[i])])
+        return tuple([cria_coordenada(i[0], int(i[1:])) for i in m if fn(m[i])])
     
     if s == 'tapadas':
         return get_coords(m, eh_parcela_tapada)
@@ -286,10 +286,14 @@ def obtem_coordenadas(m, s: str) -> tuple:
         return get_coords(m, eh_parcela_limpa)
     elif s == 'minadas':
         return get_coords(m, eh_parcela_minada)
+
     
+def eh_coordenada_do_campo(m, c) -> bool:
+    return eh_campo(m) and coordenada_para_str(c) in m
+
 
 def in_bounds_and_is_bomb(m, c):
-    return coordenada_para_str(c) in m and eh_parcela_minada(m[coordenada_para_str(c)])
+    return eh_coordenada_do_campo(m, c) and eh_parcela_minada(m[coordenada_para_str(c)])
 
 
 def obtem_numero_minas_vizinhas(m, c):
@@ -308,10 +312,6 @@ def eh_campo(m: any) -> bool:
         if not eh_parcela(m[i]):
             return False
     return True
-
-
-def eh_coordenada_do_campo(m, c) -> bool:
-    return eh_campo(m) and coordenada_para_str(c) in m
 
 
 def campos_iguais(m1, m2) -> bool:
@@ -359,17 +359,21 @@ def coloca_minas(m, c, g, n):
             
 
 def empty_no_bombs_filter(m, c0, c0_last, c0_new, c):
-    return coordenada_para_str(c) in m and obtem_numero_minas_vizinhas(m, c) == 0 and \
+    return eh_coordenada_do_campo(m, c) and obtem_numero_minas_vizinhas(m, c) == 0 and \
         c not in (*c0, *c0_last, *c0_new) and \
         eh_parcela_tapada(obtem_parcela(m, c))
         
 def empty_near_bombs_filter(m, c1, c1_last, c1_new, c):
-    return coordenada_para_str(c) in m and obtem_numero_minas_vizinhas(m, c) >= 1 and \
+    return eh_coordenada_do_campo(m, c) and obtem_numero_minas_vizinhas(m, c) >= 1 and \
         c not in (*c1, *c1_last, *c1_new) and \
         eh_parcela_tapada(obtem_parcela(m, c)) 
 
 def limpa_campo(m, c):
     if not eh_parcela_tapada(obtem_parcela(m, c)): return m
+    if eh_parcela_minada(obtem_parcela(m, c)) or obtem_numero_minas_vizinhas(m, c) >= 1:
+        limpa_parcela(obtem_parcela(m, c))
+        return m
+    
     def get_clean_cells(m, c0, c1, c0_last, c1_last):
         if (*c0, *c1) == ():
             return c0_last + c1_last
@@ -385,3 +389,81 @@ def limpa_campo(m, c):
         limpa_parcela(obtem_parcela(m, i))
         
     return m
+
+
+def jogo_ganho(m) -> bool:
+    for i in m.values():
+        if not eh_parcela_minada(i) and not eh_parcela_limpa(i):
+            return False
+    return True
+
+
+def until_valid_coordenate(m, c):
+    while not eh_coordenada(c):
+        c = input('Escolha uma coordenada:')
+        try:
+            if len(c) != 3: continue
+            c = cria_coordenada(c[0], int(c[1:]))
+            if not eh_coordenada_do_campo(m, c):
+                c = ''
+        except Exception:
+            continue
+    return c
+
+
+def turno_jogador(m) -> bool:
+    option, coord, flags, bombs = '', '', len(obtem_coordenadas(m, 'marcadas')), len(obtem_coordenadas(m, 'minadas'))
+    while option != 'L' and option != 'M':
+        option = input('Escolha uma ação, [L]impar ou [M]arcar:')
+    coord = until_valid_coordenate(m, coord)
+
+    if option == 'L':
+        limpa_campo(m, coord)
+        return not eh_parcela_minada(obtem_parcela(m, coord))
+    if flags < bombs:
+        alterna_bandeira(obtem_parcela(m, coord))
+    else:
+        if eh_parcela_marcada(obtem_parcela(m, coord)):
+            alterna_bandeira(obtem_parcela(m, coord))
+                
+    return True
+
+
+def main_loop(field, n):
+    while True:
+        flags = len(obtem_coordenadas(field, 'marcadas'))
+        print(f'   [Bandeiras {flags}/{n}]')
+        print(campo_para_str(field))
+        
+        if not turno_jogador(field):
+            print(f'   [Bandeiras {flags}/{n}]')
+            print(campo_para_str(field))
+            print('BOOOOOOOM!!!')
+            return False
+        if jogo_ganho(field):
+            print(f'   [Bandeiras {flags}/{n}]')
+            print(campo_para_str(field))
+            print('VITORIA!!!')
+            return True
+
+def minas(c: str, l: int, n: int, d: int, s: int) -> bool:
+    if (not isinstance(c, str) or not isinstance(l, int) or
+            not isinstance(n, int) or not isinstance(d, int) or
+            not isinstance(s, int) or len(c) != 1 or
+            not 65 <= ord(c) <= 90 or not 1 <= l <= 99 or
+            not 1 <= n < (ord(c) - 64) * l or d != 32 and d != 64 or
+            s < 1):
+        raise ValueError('minas: argumentos invalidos')
+    
+    field, generator, init_coord = cria_campo(c, l), cria_gerador(d, s), ''
+    print(f'   [Bandeiras 0/{n}]')
+    print(campo_para_str(field))
+    init_coord = until_valid_coordenate(field, init_coord)
+    
+    field = coloca_minas(field, init_coord, generator, n)
+    limpa_campo(field, init_coord)
+    
+    return main_loop(field, n)
+    
+    
+#minas('Z', 5, 10, 32, 15)
