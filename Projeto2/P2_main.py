@@ -3,6 +3,9 @@
 # N 106485
 # rodrigofreitasfreire@tecnico.ulisboa.pt
 
+from functools import reduce
+
+
 #################
 # TAD GERADOR
 #################
@@ -240,7 +243,7 @@ def alterna_bandeira(p) -> bool:
 
 
 #################
-# TAD PARCELA
+# TAD CAMPO
 #################
 def cria_campo(c: str, l: int):
     if (not isinstance(c, str) or not isinstance(l, int) or
@@ -260,15 +263,15 @@ def cria_copia_campo(m):
 
 
 def obtem_ultima_coluna(m):
-    return obtem_coluna(m[tuple(m.keys())[-1]])
+    return tuple(m.keys())[-1][0]
 
 
 def obtem_ultima_linha(m):
-    return obtem_linha(m[tuple(m.keys())[-1]])
+    return int(tuple(m.keys())[-1][1:])
 
 
 def obtem_parcela(m, c):
-    return m[f'{obtem_coluna(c)}_{obtem_linha(c)}']
+    return m[f'{coordenada_para_str(c)}']
 
 
 def obtem_coordenadas(m, s: str) -> tuple:
@@ -285,13 +288,100 @@ def obtem_coordenadas(m, s: str) -> tuple:
         return get_coords(m, eh_parcela_minada)
     
 
-def obtem_numero_minas_vizinhas(m, c) -> int:
-    def if_exists(m, v):
-        for i in m:
-            return i in v 
+def in_bounds_and_is_bomb(m, c):
+    return coordenada_para_str(c) in m and eh_parcela_minada(m[coordenada_para_str(c)])
+
+
+def obtem_numero_minas_vizinhas(m, c):
     neighbours = obtem_coordenadas_vizinhas(c)
-    return filter(if_exists(m, neighbours), neighbours) 
+    return len(tuple(filter(lambda c: in_bounds_and_is_bomb(m, c), neighbours)))
 
 
-m1 = cria_campo('D', 5)
-print
+def eh_campo(m: any) -> bool:
+    if not isinstance(m, dict) or len(m) < 1:
+        return False
+    for i in m:
+        try:
+            coord = cria_coordenada(i[0], int(i[1:]))
+        except Exception:
+            return False
+        if not eh_parcela(m[i]):
+            return False
+    return True
+
+
+def eh_coordenada_do_campo(m, c) -> bool:
+    return eh_campo(m) and coordenada_para_str(c) in m
+
+
+def campos_iguais(m1, m2) -> bool:
+    return eh_campo(m1) and eh_campo(m2) and m1.items() == m2.items()
+
+
+def campo_para_str(m) -> str:
+    columns = [chr(i) for i in range(65, ord(obtem_ultima_coluna(m)) + 1)]
+    lines = [f'0{i}' if i < 10 else f'{i}' for i in range(1, obtem_ultima_linha(m) + 1)]  
+
+    def populate_field(m, lin_list, col_list):
+        field = ''
+        for i in lin_list:
+            field += f'{i}|'
+            for j in col_list:
+                parcela_str = parcela_para_str(m[f'{j}{i}'])
+                if parcela_str == '?':
+                    if obtem_numero_minas_vizinhas(m, cria_coordenada(j, int(i))) == 0:
+                        field += ' '
+                    else:
+                        field += f'{obtem_numero_minas_vizinhas(m, cria_coordenada(j, int(i)))}'
+                else:
+                    field += parcela_para_str(m[f'{j}{i}'])
+            field += '|\n'
+        return field
+       
+    return (
+        f"   {''.join(columns)}\n"
+        f"  +{'-' * len(columns)}+\n"
+        f"{populate_field(m, lines, columns)}  +{'-' * len(columns)}+"
+    )  
+
+
+def coloca_minas(m, c, g, n):
+    not_allowed_coords = (c, ) + obtem_coordenadas_vizinhas(c)
+    def generate_coord(g):
+        return obtem_coordenada_aleatoria(cria_coordenada(obtem_ultima_coluna(m), obtem_ultima_linha(m)), g)
+    
+    new_coord = generate_coord(g)
+    for i in range(n):
+        while (new_coord in not_allowed_coords or m[coordenada_para_str(new_coord)]['mined'] == True):
+            new_coord = generate_coord(g)
+        m[coordenada_para_str(new_coord)]['mined'] = True
+    return m
+            
+
+def empty_no_bombs_filter(m, c0, c0_last, c0_new, c):
+    return coordenada_para_str(c) in m and obtem_numero_minas_vizinhas(m, c) == 0 and \
+        c not in (*c0, *c0_last, *c0_new) and \
+        eh_parcela_tapada(obtem_parcela(m, c))
+        
+def empty_near_bombs_filter(m, c1, c1_last, c1_new, c):
+    return coordenada_para_str(c) in m and obtem_numero_minas_vizinhas(m, c) >= 1 and \
+        c not in (*c1, *c1_last, *c1_new) and \
+        eh_parcela_tapada(obtem_parcela(m, c)) 
+
+def limpa_campo(m, c):
+    if not eh_parcela_tapada(obtem_parcela(m, c)): return m
+    def get_clean_cells(m, c0, c1, c0_last, c1_last):
+        if (*c0, *c1) == ():
+            return c0_last + c1_last
+        
+        c0_new, c1_new = (), ()
+        for i in c0:
+            v = obtem_coordenadas_vizinhas(i)
+            c0_new += tuple(filter(lambda c: empty_no_bombs_filter(m, c0, c0_last, c0_new, c), v))
+            c1_new += tuple(filter(lambda c: empty_near_bombs_filter(m, c1, c1_last, c1_new, c), v)) 
+        return get_clean_cells(m, c0_new, c1_new, c0 + c0_last, c1 + c1_last)
+    results = get_clean_cells(m, (c, ), (), (), ())
+    for i in results:
+        limpa_parcela(obtem_parcela(m, i))
+        
+    return m
