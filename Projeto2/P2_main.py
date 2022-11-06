@@ -370,10 +370,10 @@ def empty_near_bombs_filter(m, c1, c1_last, c1_new, c):
 
 
 def limpa_campo(m, c):
-    if not eh_parcela_tapada(obtem_parcela(m, c)): return m
     if (eh_parcela_minada(obtem_parcela(m, c)) or obtem_numero_minas_vizinhas(m, c) >= 1):
         limpa_parcela(obtem_parcela(m, c))
         return m
+    if not eh_parcela_tapada(obtem_parcela(m, c)): return m
 
     def get_clean_cells(m, c0, c1, c0_last, c1_last, p: int):
         if (*c0, *c1) == ():
@@ -466,4 +466,4 @@ def minas(c: str, l: int, n: int, d: int, s: int) -> bool:
     return main_loop(field, n)
 
 
-minas('Z', 10, 16, 64, 2454)
+#minas('N', 6, 6, 32, 100)

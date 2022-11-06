@@ -1,4 +1,4 @@
-from fp2223p2_alberto import *
+from P2_main import *
 import pygame
 import sys
 import random
