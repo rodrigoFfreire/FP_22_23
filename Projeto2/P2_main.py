@@ -7,9 +7,7 @@
 # TAD GERADOR
 #################
 def cria_gerador(b: int, s: int):
-    if (not isinstance(b, int) or not isinstance(s, int) or
-            s < 1 or
-            b != 32 and b != 64):
+    if not isinstance(b, int) or not isinstance(s, int) or s < 1 or b != 32 and b != 64:
         raise ValueError('cria_gerador: argumentos invalidos')
     if s > 2**b - 1:
         raise ValueError('cria_gerador: argumentos invalidos')
@@ -17,7 +15,7 @@ def cria_gerador(b: int, s: int):
 
 
 def cria_copia_gerador(g):
-    return g.copy()
+    return {i: g[i] for i in g}
 
 
 def obtem_estado(g) -> int:
@@ -47,7 +45,7 @@ def atualiza_estado(g) -> int:
     return xorshift(g, g['b'])
 
 
-def eh_gerador(arg: any) -> bool:
+def eh_gerador(arg) -> bool:
     if not isinstance(arg, dict) or len(arg) != 2:
         return False
     if (('b', 's') != tuple(arg.keys()) or
@@ -61,10 +59,8 @@ def eh_gerador(arg: any) -> bool:
 def geradores_iguais(g1, g2) -> bool:
     if not eh_gerador(g1) or not eh_gerador(g2):
         return False
-    if (cria_copia_gerador(g1)['b'], obtem_estado(g1)) != \
-            (cria_copia_gerador(g2)['b'], obtem_estado(g2)):
-        return False
-    return True
+    return (cria_copia_gerador(g1)['b'], obtem_estado(g1)) == \
+        (cria_copia_gerador(g2)['b'], obtem_estado(g2))
 
 
 def gerador_para_str(g) -> str:
@@ -85,10 +81,9 @@ def gera_carater_aleatorio(g, c: str) -> str:
 # TAD COORDENADA
 ##################
 def cria_coordenada(col: str, lin: int):
-    if (not isinstance(col, str) or not isinstance(lin, int) or
-            len(col) != 1 or
-            not 65 <= ord(col) <= 90 or
-            not 1 <= lin <= 99):
+    if (not isinstance(col, str) or not isinstance(lin, int) or len(col) != 1):
+        raise ValueError('cria_coordenada: argumentos invalidos')
+    if (not 65 <= ord(col) <= 90 or not 1 <= lin <= 99):
         raise ValueError('cria_coordenada: argumentos invalidos')
     return {'col': col, 'lin': lin}
 
@@ -101,7 +96,7 @@ def obtem_linha(c) -> int:
     return c['lin']
 
 
-def eh_coordenada(arg: any) -> bool:
+def eh_coordenada(arg) -> bool:
     if not isinstance(arg, dict) or len(arg) != 2:
         return False
     if (('col', 'lin') != tuple(arg.keys()) or
@@ -114,10 +109,8 @@ def eh_coordenada(arg: any) -> bool:
 def coordenadas_iguais(c1, c2) -> bool:
     if not eh_coordenada(c1) or not eh_coordenada(c2):
         return False
-    if (obtem_coluna(c1), obtem_linha(c1)) != \
-            (obtem_coluna(c2), obtem_linha(c2)):
-        return False
-    return True
+    return (obtem_coluna(c1), obtem_linha(c1)) == \
+        (obtem_coluna(c2), obtem_linha(c2))
 
 
 def coordenada_para_str(c) -> str:
@@ -126,8 +119,7 @@ def coordenada_para_str(c) -> str:
 
 
 def str_para_coordenada(s: str):
-    s_clean = s.replace('0', '')
-    return cria_coordenada(s_clean[0], int(s_clean[1:]))
+    return cria_coordenada(s[0], int(s[1:]))
 
 
 def obtem_coordenadas_vizinhas(c) -> tuple:
@@ -163,7 +155,7 @@ def cria_parcela():
 
 
 def cria_copia_parcela(p):
-    return p.copy()
+    return {i: p[i] for i in p}
 
 
 def limpa_parcela(p):
@@ -186,7 +178,7 @@ def esconde_mina(p):
     return p
 
 
-def eh_parcela(arg: any) -> bool:
+def eh_parcela(arg) -> bool:
     if not isinstance(arg, dict) or len(arg) != 2:
         return False
     if (('state', 'mined') != tuple(arg.keys()) or
@@ -197,27 +189,25 @@ def eh_parcela(arg: any) -> bool:
 
 
 def eh_parcela_tapada(p) -> bool:
-    return eh_parcela(p) and p['state'] == 'hidden'
+    return p['state'] == 'hidden'
 
 
 def eh_parcela_marcada(p) -> bool:
-    return eh_parcela(p) and p['state'] == 'flagged'
+    return p['state'] == 'flagged'
 
 
 def eh_parcela_limpa(p) -> bool:
-    return eh_parcela(p) and p['state'] == 'clean'
+    return p['state'] == 'clean'
 
 
 def eh_parcela_minada(p) -> bool:
-    return eh_parcela(p) and p['mined'] == True
+    return p['mined'] == True
 
 
 def parcelas_iguais(p1, p2) -> bool:
     if not eh_parcela(p1) or not eh_parcela(p2):
         return False
-    if p1['state'] != p2['state'] or p1['mined'] != p2['mined']:
-        return False
-    return True
+    return p1['state'] == p2['state'] and p1['mined'] == p2['mined']
 
 
 def parcela_para_str(p) -> str:
@@ -227,8 +217,9 @@ def parcela_para_str(p) -> str:
         'clean': '?',
         'clean_mined': 'X'
     }
-    return state_chars[p['state']] if p['mined'] == False or p['mined'] == True and p['state'] != 'clean' else \
-        state_chars['clean_mined']
+    return state_chars[p['state']] \
+            if p['mined'] == False or (p['state'] != 'clean' and p['mined'] == True) \
+            else state_chars['clean_mined']
 
 
 def alterna_bandeira(p) -> bool:
@@ -250,13 +241,11 @@ def cria_campo(c: str, l: int):
             not 65 <= ord(c) <= 90 or
             not 1 <= l <= 99):
         raise ValueError('cria_campo: argumentos invalidos')
-    
-    field = {}
-    for i in range(1, l + 1):
-        for j in range(65, ord(c) + 1):
-            field[f'{coordenada_para_str(cria_coordenada(chr(j), i))}'] = cria_parcela()
-            
-    return field
+    return {
+            f'{coordenada_para_str(cria_coordenada(chr(j), i))}': cria_parcela()
+            for i in range(1, l + 1) 
+            for j in range(65, ord(c) + 1)
+    }
 
 def cria_copia_campo(m):
     return {i: m[i].copy() for i in m}
@@ -276,16 +265,12 @@ def obtem_parcela(m, c):
 
 def obtem_coordenadas(m, s: str) -> tuple:
     def get_coords(m, fn):
-        return tuple([cria_coordenada(i[0], int(i[1:])) for i in m if fn(m[i])])
+        return tuple([str_para_coordenada(i) for i in m if fn(m[i])])
     
-    if s == 'tapadas':
-        return get_coords(m, eh_parcela_tapada)
-    elif s == 'marcadas':
-        return get_coords(m, eh_parcela_marcada)
-    elif s == 'limpas':
-        return get_coords(m, eh_parcela_limpa)
-    elif s == 'minadas':
-        return get_coords(m, eh_parcela_minada)
+    return get_coords(m, eh_parcela_tapada) if s == 'tapadas' else \
+        get_coords(m, eh_parcela_marcada) if s == 'marcadas' else \
+        get_coords(m, eh_parcela_limpa) if s == 'limpas' else \
+        get_coords(m, eh_parcela_minada)
 
     
 def eh_coordenada_do_campo(m, c) -> bool:
@@ -301,7 +286,7 @@ def obtem_numero_minas_vizinhas(m, c):
     return len(tuple(filter(lambda c: in_bounds_and_is_bomb(m, c), neighbours)))
 
 
-def eh_campo(m: any) -> bool:
+def eh_campo(m) -> bool:
     if not isinstance(m, dict) or len(m) < 1:
         return False
     for i in m:
@@ -375,18 +360,17 @@ def limpa_campo(m, c):
         return m
     if not eh_parcela_tapada(obtem_parcela(m, c)): return m
 
-    def get_clean_cells(m, c0, c1, c0_last, c1_last, p: int):
+    def get_clean_cells(m, c0, c1, c0_last, c1_last):
         if (*c0, *c1) == ():
             return c0_last + c1_last
-        
         c0_new, c1_new = (), ()
         for i in c0:
             v = obtem_coordenadas_vizinhas(i)
             c0_new += tuple(filter(lambda c: empty_no_bombs_filter(m, c0, c0_last, c0_new, c), v))
             c1_new += tuple(filter(lambda c: empty_near_bombs_filter(m, c1, c1_last, c1_new, c), v))
-        return get_clean_cells(m, c0_new, c1_new, c0 + c0_last, c1 + c1_last, p + 1)
-    results = get_clean_cells(m, (c, ), (), (), (), 1)
-
+        return get_clean_cells(m, c0_new, c1_new, c0 + c0_last, c1 + c1_last)
+    
+    results = get_clean_cells(m, (c, ), (), (), ())
     for i in results:
         limpa_parcela(obtem_parcela(m, i))
     return m
@@ -403,7 +387,7 @@ def until_valid_coordenate(m, c):
         c = input('Escolha uma coordenada:')
         try:
             if len(c) != 3: continue
-            c = cria_coordenada(c[0], int(c[1:]))
+            c = str_para_coordenada(c)
             if not eh_coordenada_do_campo(m, c):
                 c = ''
         except Exception:
@@ -465,4 +449,4 @@ def minas(c: str, l: int, n: int, d: int, s: int) -> bool:
     return main_loop(field, n)
 
 
-minas('N', 6, 6, 32, 100)
+print(campos_iguais(cria_campo('M',80),cria_copia_campo(cria_campo('M',80))))
