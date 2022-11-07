@@ -306,7 +306,7 @@ def eh_campo(m: any) -> bool:
         return False
     for i in m:
         try:
-            coord = cria_coordenada(i[0], int(i[1:]))
+            cria_coordenada(i[0], int(i[1:]))
         except Exception:
             return False
         if not eh_parcela(m[i]):
