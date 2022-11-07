@@ -389,7 +389,6 @@ def limpa_campo(m, c):
 
     for i in results:
         limpa_parcela(obtem_parcela(m, i))
-    
     return m
 
 
@@ -427,19 +426,19 @@ def turno_jogador(m) -> bool:
 
 
 def main_loop(field, n):
-    while True:
+    def field_info(field, n):
         flags = len(obtem_coordenadas(field, 'marcadas'))
         print(f'   [Bandeiras {flags}/{n}]')
         print(campo_para_str(field))
-        
+
+    while True:
+        field_info(field, n)
         if not turno_jogador(field):
-            print(f'   [Bandeiras {flags}/{n}]')
-            print(campo_para_str(field))
+            field_info(field, n)
             print('BOOOOOOOM!!!')
             return False
         if jogo_ganho(field):
-            print(f'   [Bandeiras {flags}/{n}]')
-            print(campo_para_str(field))
+            field_info(field, n)
             print('VITORIA!!!')
             return True
 
@@ -466,4 +465,4 @@ def minas(c: str, l: int, n: int, d: int, s: int) -> bool:
     return main_loop(field, n)
 
 
-#minas('N', 6, 6, 32, 100)
+minas('N', 6, 6, 32, 100)
