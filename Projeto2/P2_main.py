@@ -6,6 +6,8 @@
 #################
 # TAD GERADOR
 #################
+
+# CONSTRUTORES
 def cria_gerador(b: int, s: int):
     if not isinstance(b, int) or not isinstance(s, int) or s < 1 or b != 32 and b != 64:
         raise ValueError('cria_gerador: argumentos invalidos')
@@ -17,11 +19,11 @@ def cria_gerador(b: int, s: int):
 def cria_copia_gerador(g):
     return {i: g[i] for i in g}
 
-
+# SELETORES
 def obtem_estado(g) -> int:
     return g['s']
 
-
+# MODIFICADORES
 def define_estado(g, s: int) -> int:
     g['s'] = s
     return s
@@ -44,7 +46,7 @@ def atualiza_estado(g) -> int:
             return seed
     return xorshift(g, g['b'])
 
-
+# RECONHECEDOR
 def eh_gerador(arg) -> bool:
     if not isinstance(arg, dict) or len(arg) != 2:
         return False
@@ -55,18 +57,18 @@ def eh_gerador(arg) -> bool:
         return False
     return True
 
-
+# TESTE
 def geradores_iguais(g1, g2) -> bool:
     if not eh_gerador(g1) or not eh_gerador(g2):
         return False
     return (cria_copia_gerador(g1)['b'], obtem_estado(g1)) == \
         (cria_copia_gerador(g2)['b'], obtem_estado(g2))
 
-
+# TRANSFORMADOR
 def gerador_para_str(g) -> str:
     return f'xorshift{cria_copia_gerador(g)["b"]}(s={obtem_estado(g)})'
 
-
+# ALTO NIVEL
 def gera_numero_aleatorio(g, n: int) -> int:
     atualiza_estado(g)
     return 1 + obtem_estado(g) % n
@@ -80,14 +82,17 @@ def gera_carater_aleatorio(g, c: str) -> str:
 ##################
 # TAD COORDENADA
 ##################
+
+# CONSTRUTORES
 def cria_coordenada(col: str, lin: int):
-    if (not isinstance(col, str) or not isinstance(lin, int) or len(col) != 1):
-        raise ValueError('cria_coordenada: argumentos invalidos')
-    if (not 65 <= ord(col) <= 90 or not 1 <= lin <= 99):
+    if (not isinstance(col, str) or not isinstance(lin, int) or
+            len(col) != 1 or
+            not 65 <= ord(col) <= 90 or
+            not 1 <= lin <= 99):
         raise ValueError('cria_coordenada: argumentos invalidos')
     return {'col': col, 'lin': lin}
 
-
+# SELETORES
 def obtem_coluna(c) -> str:
     return c['col']
 
@@ -95,7 +100,7 @@ def obtem_coluna(c) -> str:
 def obtem_linha(c) -> int:
     return c['lin']
 
-
+# RECONHECEDOR
 def eh_coordenada(arg) -> bool:
     if not isinstance(arg, dict) or len(arg) != 2:
         return False
@@ -105,14 +110,14 @@ def eh_coordenada(arg) -> bool:
         return False
     return True
 
-
+# TESTE
 def coordenadas_iguais(c1, c2) -> bool:
     if not eh_coordenada(c1) or not eh_coordenada(c2):
         return False
     return (obtem_coluna(c1), obtem_linha(c1)) == \
         (obtem_coluna(c2), obtem_linha(c2))
 
-
+# TRANSFORMADOR
 def coordenada_para_str(c) -> str:
     return f'{obtem_coluna(c)}0{obtem_linha(c)}' if obtem_linha(c) < 10 \
         else f'{obtem_coluna(c)}{obtem_linha(c)}' 
@@ -121,7 +126,7 @@ def coordenada_para_str(c) -> str:
 def str_para_coordenada(s: str):
     return cria_coordenada(s[0], int(s[1:]))
 
-
+# ALTO NIVEL
 def obtem_coordenadas_vizinhas(c) -> tuple:
     neighbours = ()
     def loop_settings(i):
@@ -150,6 +155,9 @@ def obtem_coordenada_aleatoria(c, g):
 #################
 # TAD PARCELA
 #################
+
+
+# CONSTRUTORES
 def cria_parcela():
     return {'state': 'hidden', 'mined': False}
 
@@ -337,7 +345,7 @@ def coloca_minas(m, c, g, n):
     
     new_coord = generate_coord(g)
     for i in range(n):
-        while (new_coord in not_allowed_coords or eh_parcela_minada(obtem_parcela(m, new_coord)) == True):
+        while (new_coord in not_allowed_coords or eh_parcela_minada(obtem_parcela(m, new_coord))):
             new_coord = generate_coord(g)
         esconde_mina(obtem_parcela(m, new_coord))
     return m
@@ -449,4 +457,19 @@ def minas(c: str, l: int, n: int, d: int, s: int) -> bool:
     return main_loop(field, n)
 
 
-print(campos_iguais(cria_campo('M',80),cria_copia_campo(cria_campo('M',80))))
+# m = cria_campo('Z', 10)
+# g = cria_gerador(32, 2)
+# c = cria_coordenada('M', 5)
+# m = coloca_minas(m, c, g, 16)
+# limpa_campo(m, c)
+# print(campo_para_str(m))
+m = cria_campo('E', 5)
+g = cria_gerador(32, 123)
+c = cria_coordenada('C', 3)
+m = coloca_minas(m, c, g, 4)
+t = tuple(coordenada_para_str(p) for p in obtem_coordenadas(m, 'minadas'))
+print(t)
+
+h = cria_gerador(32, 123)
+atualiza_estado(h)
+print(h)
