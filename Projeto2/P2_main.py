@@ -480,59 +480,95 @@ def campo_para_str(m: Campo) -> str:
     )  
 
 # AUXILARES P/ F.ALTO NIVEL
-def empty_no_bombs_filter(m, c0, c0_last, c0_new, c):
+def no_bombs_filter(m: Campo, c0: tuple[Coordenada], c0_last: tuple[Coordenada], c0_new: tuple[Coordenada], c: Coordenada):
+    '''Funcao auxiliar a `limpa_campo` filtra o tuplo de coordenadas `c0` de modo a retirar coordenadas que:\n
+    Ja foram limpas ou ja foram adicionadas ah lista para serem limpas\n
+    Nao pertencam ao campo\n
+    Teem minas na vizinhanca\n'''
+    
     return eh_coordenada_do_campo(m, c) and obtem_numero_minas_vizinhas(m, c) == 0 and \
         c not in (*c0, *c0_last, *c0_new) and \
         eh_parcela_tapada(obtem_parcela(m, c))
         
-def empty_near_bombs_filter(m, c1, c1_last, c1_new, c):
+def near_bombs_filter(m: Campo, c1: tuple[Coordenada], c1_last: tuple[Coordenada], c1_new: tuple[Coordenada], c: Coordenada):
+    '''Funcao auxiliar a `limpa_campo` filtra o tuplo de coordenadas `c1` de modo a retirar coordenadas que:\n
+    Ja foram limpas ou ja foram adicionadas ah lista para serem limpas\n
+    Nao pertencam ao campo\n
+    Nao Teem minas na vizinhanca\n'''
+    
     return eh_coordenada_do_campo(m, c) and obtem_numero_minas_vizinhas(m, c) >= 1 and \
         c not in (*c1, *c1_last, *c1_new) and \
         eh_parcela_tapada(obtem_parcela(m, c))
         
 # ALTO NIVEL
-def coloca_minas(m, c, g, n):
+def coloca_minas(m: Campo, c: Coordenada, g: Gerador, n: int):
+    '''Retorna o campo `m` destrutivamente modificado que esconde `n` minas geradas aleatoriamente
+    pelo o gerador `g` mas que nao coincidam com a coordenada `c` e a sua vizinhanca ou que ja tenham
+    minas'''
+    
     not_allowed_coords = (c, ) + obtem_coordenadas_vizinhas(c)
     def generate_coord(g):
             return obtem_coordenada_aleatoria(cria_coordenada(obtem_ultima_coluna(m), obtem_ultima_linha(m)), g)
     
     new_coord = generate_coord(g)
     for i in range(n):
+        # Enquanto `new_coord` nao for uma coordenada adequada para ser 
         while (new_coord in not_allowed_coords or eh_parcela_minada(obtem_parcela(m, new_coord))):
             new_coord = generate_coord(g)
         esconde_mina(obtem_parcela(m, new_coord))
     return m 
 
 
-def limpa_campo(m, c):
+def limpa_campo(m: Campo, c: Coordenada):
+    '''Retorna o campo `m` destrutivamente modificado limpando a parcela de coordenada `c`
+    Se nao houver nenhuma mina escondida na vizinhanca vai limpando todas as parcelas vizinhas'''
+    
+    # Limpa somente essa parcela se tiver minas na vizinhanca
     if (eh_parcela_minada(obtem_parcela(m, c)) or obtem_numero_minas_vizinhas(m, c) >= 1):
         limpa_parcela(obtem_parcela(m, c))
         return m
+    # Nao modifica nada se nao for uma parcela tapada
     if not eh_parcela_tapada(obtem_parcela(m, c)): return m
 
-    def get_clean_cells(m, c0, c1, c0_last, c1_last):
+    def get_clean_cells(m: Campo, c0: tuple[Coordenada], c1: tuple[Coordenada],
+                        c0_last: tuple[Coordenada], c1_last: tuple[Coordenada]):
+        '''Funcao recursiva auxiliar. `c0` eh um tuplo de coordenadas sem minas na vizinhanca
+        que precisam de ser limpas. `c1` eh um tuplo de coordenadas com minas na vizinhanca
+        que precisam de ser limpas. `c0_last` e `c1_last` correspondem ao respetivos tuplos
+        que joram limpos para evitar ciclos desnecessarios.'''
+        
         if (*c0, *c1) == ():
+            # Acabar a recursao quando ja nao houverem mais celulas para limpar
             return c0_last + c1_last
-        c0_new, c1_new = (), ()
+        c0_new, c1_new = (), ()     # tuplos de coordenadas vizinhas do tuplo `c0` e `c1` que serao escolhidas para limpar  
         for i in c0:
             v = obtem_coordenadas_vizinhas(i)
-            c0_new += tuple(filter(lambda c: empty_no_bombs_filter(m, c0, c0_last, c0_new, c), v))
-            c1_new += tuple(filter(lambda c: empty_near_bombs_filter(m, c1, c1_last, c1_new, c), v))
-        return get_clean_cells(m, c0_new, c1_new, c0 + c0_last, c1 + c1_last)
+            # Filtrar os tuplos de modo a evitar coordenadas repetidas para melhor eficiencia
+            c0_new += tuple(filter(lambda c: no_bombs_filter(m, c0, c0_last, c0_new, c), v)) 
+            c1_new += tuple(filter(lambda c: near_bombs_filter(m, c1, c1_last, c1_new, c), v))
+        # Novo nivel de recursao com as proximas coordenadas para limpar e adicionamos as que foram limpas
+        # a uma lista que indicara ao algoritmo para ignorar para melhor eficiencia
+        return get_clean_cells(m, c0_new, c1_new, (c0 + c0_last), (c1 + c1_last))
     
-    results = get_clean_cells(m, (c, ), (), (), ())
+    results = get_clean_cells(m, (c, ), (), (), ())     # obtem todas as parcelas que vao ser limpas
     for i in results:
         limpa_parcela(obtem_parcela(m, i))
     return m
 
 
-def jogo_ganho(m) -> bool:
+# FUNCOES ADICIONAIS
+def jogo_ganho(m: Campo) -> bool:
+    '''Recebe um campo `m` e retorna `True` se todas as parcelas sem minas se encontram limpas\n
+    `False` caso contrario'''
+    
     mined_cells = obtem_coordenadas(m, 'minadas')
     hidden_or_flagged = obtem_coordenadas(m, 'marcadas') + obtem_coordenadas(m, 'tapadas')
     return len(mined_cells) == len(hidden_or_flagged)
 
-# FUNCOES ADICIONAIS
-def until_valid_coordenate(m, c):
+def until_valid_coordenate(m: Campo, c: str):
+    '''Funcao auxiliar que faz um loop enquanto a representacao externa `c`
+    de uma coordenada do campo `m` inserida pelo utilizador nao esteja correta'''
+    
     while not eh_coordenada(c):
         c = input('Escolha uma coordenada:')
         try:
@@ -545,7 +581,12 @@ def until_valid_coordenate(m, c):
     return c
 
 
-def turno_jogador(m) -> bool:
+def turno_jogador(m: Campo) -> bool:
+    '''Funcao que permite ao utilizador interagir com o jogo do campo `m`
+    propondo duas opcoes `Limpar` e `Marcar` executando essas acoes\n
+    Retorna `False` se caso o jogador tenha limpo uma parcela minada\n
+    `True` caso contrario'''
+    
     option, coord = '', ''
     while option != 'L' and option != 'M':
         option = input('Escolha uma ação, [L]impar ou [M]arcar:')
@@ -554,13 +595,21 @@ def turno_jogador(m) -> bool:
     if option == 'L':
         limpa_campo(m, coord)
         return not eh_parcela_minada(obtem_parcela(m, coord))
+    # Se option == 'M'
     alterna_bandeira(obtem_parcela(m, coord))
                 
     return True
 
 
-def main_loop(field, n):
-    def field_info(field, n):
+def main_loop(field: Campo, n: int) -> bool:
+    '''Funcao auxiliar que gera o loop principal
+    que permite ao utilizador jogar
+    `n` eh o numero de minas que existem no campo'''
+    
+    def field_info(field, n) -> None:
+        '''Funcao auxiliar que gera a GUI do campo `field`
+        `n` eh o numero de minas que existem no campo'''
+        
         flags = len(obtem_coordenadas(field, 'marcadas'))
         print(f'   [Bandeiras {flags}/{n}]')
         print(campo_para_str(field))
@@ -577,15 +626,24 @@ def main_loop(field, n):
             return True
 
 def minas(c: str, l: int, n: int, d: int, s: int) -> bool:
+    '''Funcao principal em conjunto com funcoes auxiliares permitem jogar
+    o jogo das minas.\n
+    `c` -> coluna maxima\n
+    `l` -> linha maxima\n
+    `n` -> num de minas\n
+    `d` -> bits do gerador\n
+    `s` -> seed incial do gerador'''
+    
     if (not isinstance(c, str) or not isinstance(l, int) or
             not isinstance(n, int) or not isinstance(d, int) or
             not isinstance(s, int) or len(c) != 1 or
             not 65 <= ord(c) <= 90 or not 1 <= l <= 99 or
-            not 1 <= n < (ord(c) - 64) * l or d != 32 and d != 64 or
-            s < 1):
+            # num de minas tem de ser > 1 e menor que num de parcelas do campo
+            d != 32 and d != 64 or not 1 <= n < (ord(c) - 64) * l or
+            s < 1): # seed tem de ser positiva 
         raise ValueError('minas: argumentos invalidos')
     area = (ord(c) - 64 ) * l
-    if area < 6:
+    if area < 6:  # Se area do campo for < 6 (campo menor que 2x3 ou 3x2) nao haveria espaco para gerar minas
         raise ValueError('minas: argumentos invalidos')
     
     field, generator, init_coord = cria_campo(c, l), cria_gerador(d, s), ''
