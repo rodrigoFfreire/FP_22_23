@@ -375,20 +375,29 @@ def cria_copia_campo(m: Campo) -> Campo:
     return {i: m[i].copy() for i in m}
 
 # SELETORES
-def obtem_ultima_coluna(m):
+def obtem_ultima_coluna(m: Campo) -> str:
+    '''Retorna a string que corresponde ah ultima coluna do campo `m`'''
     return tuple(m.keys())[-1][0]
 
 
-def obtem_ultima_linha(m):
+def obtem_ultima_linha(m) -> int:
+    '''Retorna o valor que corresponde ah ultima linha do campo `m`'''
     return int(tuple(m.keys())[-1][1:])
 
 
-def obtem_parcela(m, c):
+def obtem_parcela(m: Campo, c: Coordenada) -> Parcela:
+    '''Retorna a parcela correspondente ah coordenada `c` do campo `m`'''
     return m[f'{coordenada_para_str(c)}']
 
 
-def obtem_coordenadas(m, s: str) -> tuple:
-    def get_coords(m, fn):
+def obtem_coordenadas(m: Campo, s: str) -> tuple:
+    '''Retorna o tuplo constituido pelas coordenadas do campo `m` que tem
+    estado `s` (tapadas, minadas, marcadas, limpas)'''
+    
+    def get_coords(m: Campo, fn) -> tuple:
+        '''Funcao auxiliar recebe campo `m` e uma funcao `fn` que serve como predicado
+        para filtrar as coordenadas'''
+        
         return tuple([str_para_coordenada(i) for i in m if fn(m[i])])
     
     return get_coords(m, eh_parcela_tapada) if s == 'tapadas' else \
@@ -397,60 +406,77 @@ def obtem_coordenadas(m, s: str) -> tuple:
         get_coords(m, eh_parcela_minada)
 
     
-def eh_coordenada_do_campo(m, c) -> bool:
+def eh_coordenada_do_campo(m: Campo, c: Coordenada) -> bool:
+    '''Retorna `True` se a coordenada `c` existir no campo `m`\n
+    `False` caso contrario'''
+    
     return coordenada_para_str(c) in m
 
 
-def in_bounds_and_is_bomb(m, c):
+def in_bounds_and_is_bomb(m: Campo, c: Coordenada):
+    '''Funcao auxiliar verifica se a coordenada `c` existe no campo `m` e
+    se a parcela correspondente eh minada'''
+    
     return eh_coordenada_do_campo(m, c) and eh_parcela_minada(m[coordenada_para_str(c)])
 
 
-def obtem_numero_minas_vizinhas(m, c):
+def obtem_numero_minas_vizinhas(m: Campo, c: Coordenada):
+    '''Retorna o numero de parcelas minadas do campo `m` e na vizinhanca da coordenada `c`'''
+    
     neighbours = obtem_coordenadas_vizinhas(c)
     return len(tuple(filter(lambda c: in_bounds_and_is_bomb(m, c), neighbours)))
 
 # RECONHECEDORES
-def eh_campo(m) -> bool:
-    if not isinstance(m, dict) or len(m) < 1:
+def eh_campo(arg) -> bool:
+    '''Retorna `True` se `arg` eh um TAD `Campo`\n
+    `False` caso contrario'''
+    if not isinstance(arg, dict) or len(arg) < 1:
         return False
-    for i in m:
+    for i in arg:
         try:
-            cria_coordenada(i[0], int(i[1:]))
+            cria_coordenada(i[0], int(i[1:]))   # try/except para verificar se existe uma coordenada no campo invalida
         except Exception:
             return False
-        if not eh_parcela(m[i]):
+        if not eh_parcela(arg[i]):
             return False
     return True
 
 # TESTE
-def campos_iguais(m1, m2) -> bool:
+def campos_iguais(m1: Campo, m2: Campo) -> bool:
+    '''Retorna `True` se (`m1`, `m2`) forem ambos TAD `Campo` e se forem iguais'''
+    
     return eh_campo(m1) and eh_campo(m2) and m1.items() == m2.items()
 
 # TRANSFORMADOR
-def campo_para_str(m) -> str:
+def campo_para_str(m: Campo) -> str:
+    '''Retorna a representacao externa do campo `m`'''
+    
+    # Lista das colunas ex: ['A', 'B', 'C', ...]
     columns = [chr(i) for i in range(65, ord(obtem_ultima_coluna(m)) + 1)]
-    lines = [f'0{i}' if i < 10 else f'{i}' for i in range(1, obtem_ultima_linha(m) + 1)]  
+    # Lista das linhas ex: ['01', '02', '03', ...]
+    lines = [f'0{i}' if i < 10 else f'{i}' for i in range(1, obtem_ultima_linha(m) + 1)]
 
-    def populate_field(m, lin_list, col_list):
+    def populate_field(m: Campo, lin_list: list[str], col_list: list[str]) -> str:
+        '''Funcao auxiliar que retorna linhas do campo `m` utilizando as listas `lin_list` e `col_list`'''
         field = ''
         for i in lin_list:
-            field += f'{i}|'
+            field += f'{i}|'    # Inicia a linha com o numero da linha. ex: 01|
             for j in col_list:
                 parcela_str = parcela_para_str(m[f'{j}{i}'])
                 if parcela_str == '?':
                     if obtem_numero_minas_vizinhas(m, cria_coordenada(j, int(i))) == 0:
-                        field += ' '
+                        field += ' '        # se a celula tiver 0 bombas na vizinhanca
                     else:
                         field += f'{obtem_numero_minas_vizinhas(m, cria_coordenada(j, int(i)))}'
                 else:
                     field += parcela_para_str(m[f'{j}{i}'])
-            field += '|\n'
+            field += '|\n'  # Acaba a linha e adiciona \n para estar pronta para a proxima linha
         return field
        
     return (
-        f"   {''.join(columns)}\n"
-        f"  +{'-' * len(columns)}+\n"
-        f"{populate_field(m, lines, columns)}  +{'-' * len(columns)}+"
+        f"   {''.join(columns)}\n"                                      # colunas ex: ABCDEFGH..
+        f"  +{'-' * len(columns)}+\n"                                   # limites superiores do campo do campo ex: +--------+
+        f"{populate_field(m, lines, columns)}  +{'-' * len(columns)}+"  # As linhas do campo e os limites inferiores do campo
     )  
 
 # AUXILARES P/ F.ALTO NIVEL
