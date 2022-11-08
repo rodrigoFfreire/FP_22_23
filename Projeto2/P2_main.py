@@ -3,35 +3,49 @@
 # N 106485
 # rodrigofreitasfreire@tecnico.ulisboa.pt
 
+Gerador = dict[str, int]
+
 #################
 # TAD GERADOR
 #################
 
 # CONSTRUTORES
-def cria_gerador(b: int, s: int):
+def cria_gerador(b: int, s: int) -> Gerador:
+    '''Retorna um gerador que recebe o valor de bits `b` e o valor da seed `s`
+    Representacao Interna:  {'b': `b`, 's': `s`}
+    '''
     if not isinstance(b, int) or not isinstance(s, int) or s < 1 or b != 32 and b != 64:
         raise ValueError('cria_gerador: argumentos invalidos')
-    if s > 2**b - 1:
+    if s > 2**b - 1: # seed nao pode ser o int maior que 32bit ou 64bit (tendo em conta o valor de `b`)
         raise ValueError('cria_gerador: argumentos invalidos')
     return {'b': b, 's': s}
 
 
-def cria_copia_gerador(g):
+def cria_copia_gerador(g: Gerador) -> Gerador:
+    '''Recebe e retorna uma copia do gerador `g`'''
     return {i: g[i] for i in g}
 
 # SELETORES
-def obtem_estado(g) -> int:
+def obtem_estado(g: Gerador) -> int:
+    '''Retorna o valor da seed do gerador `g` recebido'''
     return g['s']
 
 # MODIFICADORES
-def define_estado(g, s: int) -> int:
+def define_estado(g: Gerador, s: int) -> int:
+    '''Modifica o valor da seed do gerador `g` com o valor `s`\n
+    Retorna `s`'''
     g['s'] = s
     return s
 
 
-def atualiza_estado(g) -> int:
-    def xorshift(g, b):
+def atualiza_estado(g: Gerador) -> int:
+    '''Recebe um gerador `g` e atualiza o valor da sua seed utilizando a funcao `xorshift`'''
+    def xorshift(g: Gerador, b: int) -> int:
+        '''Funcao Auxiliar que recebe um gerador `g` e o valor de bits `b`
+        e utiliza o algoritmo xorshift32/64 (depende do valor de `b`) para
+        gerar uma nova seed\nRetorna o valor da nova seed'''
         seed = g['s']
+        # O algoritmo utiliza operacoes bitwise
         if b == 32:
             seed ^= (seed << 13) & 0xFFFFFFFF
             seed ^= (seed >> 17) & 0xFFFFFFFF
@@ -47,36 +61,43 @@ def atualiza_estado(g) -> int:
     return xorshift(g, g['b'])
 
 # RECONHECEDOR
-def eh_gerador(arg) -> bool:
+def eh_gerador(arg: any) -> bool:
+    '''Retorna `True` se `arg` for um TAD `Gerador` e `False` caso o contrario'''
     if not isinstance(arg, dict) or len(arg) != 2:
         return False
     if (('b', 's') != tuple(arg.keys()) or
-            cria_copia_gerador(arg)['b'] != 32 and 
+            cria_copia_gerador(arg)['b'] != 32 and # unicas opcoes sao 32bits ou 64bits 
             cria_copia_gerador(arg)['b'] != 64 or
-            obtem_estado(arg) < 1):
+            obtem_estado(arg) < 1): # seed tem de ser um valor positivo
         return False
     return True
 
 # TESTE
-def geradores_iguais(g1, g2) -> bool:
+def geradores_iguais(g1: Gerador, g2: Gerador) -> bool:
+    '''Recebe dois geradores `g1, g2` e retorna `True` se forem `Geradores` e se forem iguais'''
     if not eh_gerador(g1) or not eh_gerador(g2):
         return False
     return (cria_copia_gerador(g1)['b'], obtem_estado(g1)) == \
         (cria_copia_gerador(g2)['b'], obtem_estado(g2))
 
 # TRANSFORMADOR
-def gerador_para_str(g) -> str:
+def gerador_para_str(g: Gerador) -> str:
+    '''Recebe o gerador `g` e retorna a sua representacao externa'''
     return f'xorshift{cria_copia_gerador(g)["b"]}(s={obtem_estado(g)})'
 
 # ALTO NIVEL
-def gera_numero_aleatorio(g, n: int) -> int:
+def gera_numero_aleatorio(g: Gerador, n: int) -> int:
+    '''Recebe o gerador `g` atualizando o seu estado e retorna um numero pseudoaleatorio
+    contido no intervalo [1, `n`]'''
     atualiza_estado(g)
     return 1 + obtem_estado(g) % n
 
 
-def gera_carater_aleatorio(g, c: str) -> str:
+def gera_carater_aleatorio(g: Gerador, c: str) -> str:
+    '''Recebe o gerador `g` atualizando o seu estado e retorna um caracter pseudoaleatorio
+    contido entre `"A"` e o caracter maiusculo `c`'''
     atualiza_estado(g)
-    return chr(65 + obtem_estado(g) % (ord(c) - ord('A') + 1))
+    return chr(65 + obtem_estado(g) % (ord(c) - ord('A') + 1)) # 65 eh o offset, porque chr(65) = 'A'
 
 
 ##################
@@ -156,7 +177,6 @@ def obtem_coordenada_aleatoria(c, g):
 # TAD PARCELA
 #################
 
-
 # CONSTRUTORES
 def cria_parcela():
     return {'state': 'hidden', 'mined': False}
@@ -165,7 +185,7 @@ def cria_parcela():
 def cria_copia_parcela(p):
     return {i: p[i] for i in p}
 
-
+# MODIFICADORES
 def limpa_parcela(p):
     p['state'] = 'clean'
     return p
@@ -185,7 +205,7 @@ def esconde_mina(p):
     p['mined'] = True
     return p
 
-
+# RECONHECEDOR
 def eh_parcela(arg) -> bool:
     if not isinstance(arg, dict) or len(arg) != 2:
         return False
@@ -211,13 +231,13 @@ def eh_parcela_limpa(p) -> bool:
 def eh_parcela_minada(p) -> bool:
     return p['mined'] == True
 
-
+# TESTE
 def parcelas_iguais(p1, p2) -> bool:
     if not eh_parcela(p1) or not eh_parcela(p2):
         return False
     return p1['state'] == p2['state'] and p1['mined'] == p2['mined']
 
-
+# TRANSFORMADOR
 def parcela_para_str(p) -> str:
     state_chars = {
         'hidden': '#',
@@ -229,7 +249,7 @@ def parcela_para_str(p) -> str:
             if p['mined'] == False or (p['state'] != 'clean' and p['mined'] == True) \
             else state_chars['clean_mined']
 
-
+# ALTO NIVEL
 def alterna_bandeira(p) -> bool:
     if eh_parcela_marcada(p) or eh_parcela_tapada(p):
         if eh_parcela_marcada(p):
@@ -243,6 +263,8 @@ def alterna_bandeira(p) -> bool:
 #################
 # TAD CAMPO
 #################
+
+# CONSTRUTORES
 def cria_campo(c: str, l: int):
     if (not isinstance(c, str) or not isinstance(l, int) or
             len(c) != 1 or
@@ -258,7 +280,7 @@ def cria_campo(c: str, l: int):
 def cria_copia_campo(m):
     return {i: m[i].copy() for i in m}
 
-
+# SELETORES
 def obtem_ultima_coluna(m):
     return tuple(m.keys())[-1][0]
 
@@ -293,7 +315,7 @@ def obtem_numero_minas_vizinhas(m, c):
     neighbours = obtem_coordenadas_vizinhas(c)
     return len(tuple(filter(lambda c: in_bounds_and_is_bomb(m, c), neighbours)))
 
-
+# RECONHECEDORES
 def eh_campo(m) -> bool:
     if not isinstance(m, dict) or len(m) < 1:
         return False
@@ -306,11 +328,11 @@ def eh_campo(m) -> bool:
             return False
     return True
 
-
+# TESTE
 def campos_iguais(m1, m2) -> bool:
     return eh_campo(m1) and eh_campo(m2) and m1.items() == m2.items()
 
-
+# TRANSFORMADOR
 def campo_para_str(m) -> str:
     columns = [chr(i) for i in range(65, ord(obtem_ultima_coluna(m)) + 1)]
     lines = [f'0{i}' if i < 10 else f'{i}' for i in range(1, obtem_ultima_linha(m) + 1)]  
@@ -337,7 +359,18 @@ def campo_para_str(m) -> str:
         f"{populate_field(m, lines, columns)}  +{'-' * len(columns)}+"
     )  
 
-
+# AUXILARES P/ F.ALTO NIVEL
+def empty_no_bombs_filter(m, c0, c0_last, c0_new, c):
+    return eh_coordenada_do_campo(m, c) and obtem_numero_minas_vizinhas(m, c) == 0 and \
+        c not in (*c0, *c0_last, *c0_new) and \
+        eh_parcela_tapada(obtem_parcela(m, c))
+        
+def empty_near_bombs_filter(m, c1, c1_last, c1_new, c):
+    return eh_coordenada_do_campo(m, c) and obtem_numero_minas_vizinhas(m, c) >= 1 and \
+        c not in (*c1, *c1_last, *c1_new) and \
+        eh_parcela_tapada(obtem_parcela(m, c))
+        
+# ALTO NIVEL
 def coloca_minas(m, c, g, n):
     not_allowed_coords = (c, ) + obtem_coordenadas_vizinhas(c)
     def generate_coord(g):
@@ -348,18 +381,7 @@ def coloca_minas(m, c, g, n):
         while (new_coord in not_allowed_coords or eh_parcela_minada(obtem_parcela(m, new_coord))):
             new_coord = generate_coord(g)
         esconde_mina(obtem_parcela(m, new_coord))
-    return m
-            
-
-def empty_no_bombs_filter(m, c0, c0_last, c0_new, c):
-    return eh_coordenada_do_campo(m, c) and obtem_numero_minas_vizinhas(m, c) == 0 and \
-        c not in (*c0, *c0_last, *c0_new) and \
-        eh_parcela_tapada(obtem_parcela(m, c))
-        
-def empty_near_bombs_filter(m, c1, c1_last, c1_new, c):
-    return eh_coordenada_do_campo(m, c) and obtem_numero_minas_vizinhas(m, c) >= 1 and \
-        c not in (*c1, *c1_last, *c1_new) and \
-        eh_parcela_tapada(obtem_parcela(m, c)) 
+    return m 
 
 
 def limpa_campo(m, c):
@@ -389,7 +411,7 @@ def jogo_ganho(m) -> bool:
     hidden_or_flagged = obtem_coordenadas(m, 'marcadas') + obtem_coordenadas(m, 'tapadas')
     return len(mined_cells) == len(hidden_or_flagged)
 
-
+# FUNCOES ADICIONAIS
 def until_valid_coordenate(m, c):
     while not eh_coordenada(c):
         c = input('Escolha uma coordenada:')
@@ -455,21 +477,3 @@ def minas(c: str, l: int, n: int, d: int, s: int) -> bool:
     limpa_campo(field, init_coord)
     
     return main_loop(field, n)
-
-
-# m = cria_campo('Z', 10)
-# g = cria_gerador(32, 2)
-# c = cria_coordenada('M', 5)
-# m = coloca_minas(m, c, g, 16)
-# limpa_campo(m, c)
-# print(campo_para_str(m))
-m = cria_campo('E', 5)
-g = cria_gerador(32, 123)
-c = cria_coordenada('C', 3)
-m = coloca_minas(m, c, g, 4)
-t = tuple(coordenada_para_str(p) for p in obtem_coordenadas(m, 'minadas'))
-print(t)
-
-h = cria_gerador(32, 123)
-atualiza_estado(h)
-print(h)
