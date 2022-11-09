@@ -3,57 +3,54 @@
 # N 106485
 # rodrigofreitasfreire@tecnico.ulisboa.pt
 
-# Definicao explicita dos TAD para melhores documentacao das funcoes
-Gerador = dict[str, int]
-Coordenada = dict[str, int | str]
-Parcela = dict[str, str | bool]
-Campo = dict[str, Parcela]
 
 #################
 # TAD GERADOR
 #################
 
 # CONSTRUTORES
-def cria_gerador(b: int, s: int) -> Gerador:
-    '''Retorna um gerador que recebe o valor de bits `b` e o valor da seed `s`
+def cria_gerador(b: int, s: int):
+    """Retorna um gerador que recebe o valor de bits `b` e o valor da seed `s`
     Representacao Interna:  {'b': `b`, 's': `s`}
-    '''
-    
+    """
+
     if not isinstance(b, int) or not isinstance(s, int) or s < 1 or b != 32 and b != 64:
         raise ValueError('cria_gerador: argumentos invalidos')
-    if s > 2**b - 1: # seed nao pode ser o int maior que 32bit ou 64bit (tendo em conta o valor de `b`)
+    if s > 2 ** b - 1:  # seed nao pode ser o int maior que 32bit ou 64bit (tendo em conta o valor de `b`)
         raise ValueError('cria_gerador: argumentos invalidos')
     return {'b': b, 's': s}
 
 
-def cria_copia_gerador(g: Gerador) -> Gerador:
-    '''Recebe e retorna uma copia do gerador `g`'''
-    
+def cria_copia_gerador(g):
+    """Recebe e retorna uma copia do gerador `g`"""
+
     return {i: g[i] for i in g}
 
+
 # SELETORES
-def obtem_estado(g: Gerador) -> int:
-    '''Retorna o valor da seed do gerador `g` recebido'''
-    
+def obtem_estado(g) -> int:
+    """Retorna o valor da seed do gerador `g` recebido"""
+
     return g['s']
 
+
 # MODIFICADORES
-def define_estado(g: Gerador, s: int) -> int:
-    '''Modifica o valor da seed do gerador `g` com o valor `s`\n
-    Retorna `s`'''
-    
+def define_estado(g, s: int) -> int:
+    """Modifica o valor da seed do gerador `g` com o valor `s`\n
+    Retorna `s`"""
+
     g['s'] = s
     return s
 
 
-def atualiza_estado(g: Gerador) -> int:
-    '''Recebe um gerador `g` e atualiza o valor da sua seed utilizando a funcao `xorshift`'''
-    
-    def xorshift(g: Gerador, b: int) -> int:
-        '''Funcao Auxiliar que recebe um gerador `g` e o valor de bits `b`
+def atualiza_estado(g) -> int:
+    """Recebe um gerador `g` e atualiza o valor da sua seed utilizando a funcao `xorshift`"""
+
+    def xorshift(g, b: int) -> int:
+        """Funcao Auxiliar que recebe um gerador `g` e o valor de bits `b`
         e utiliza o algoritmo xorshift32/64 (depende do valor de `b`) para
-        gerar uma nova seed\nRetorna o valor da nova seed'''
-        
+        gerar uma nova seed\nRetorna o valor da nova seed"""
+
         seed = g['s']
         # O algoritmo utiliza operacoes bitwise
         if b == 32:
@@ -68,51 +65,56 @@ def atualiza_estado(g: Gerador) -> int:
             seed ^= (seed << 17) & 0xFFFFFFFFFFFFFFFF
             define_estado(g, seed)
             return seed
+
     return xorshift(g, g['b'])
+
 
 # RECONHECEDOR
 def eh_gerador(arg) -> bool:
-    '''Retorna `True` se `arg` for um TAD `Gerador` e `False` caso o contrario'''
-    
+    """Retorna `True` se `arg` for um TAD `Gerador` e `False` caso o contrario"""
+
     if not isinstance(arg, dict) or len(arg) != 2:
         return False
     if (('b', 's') != tuple(arg.keys()) or
-            cria_copia_gerador(arg)['b'] != 32 and # unicas opcoes sao 32bits ou 64bits 
+            cria_copia_gerador(arg)['b'] != 32 and  # unicas opcoes sao 32bits ou 64bits
             cria_copia_gerador(arg)['b'] != 64 or
-            obtem_estado(arg) < 1): # seed tem de ser um valor positivo
+            obtem_estado(arg) < 1):  # seed tem de ser um valor positivo
         return False
     return True
 
+
 # TESTE
-def geradores_iguais(g1: Gerador, g2: Gerador) -> bool:
-    '''Recebe dois geradores `g1, g2` e retorna `True` se forem `Geradores` e se forem iguais'''
-    
+def geradores_iguais(g1, g2) -> bool:
+    """Recebe dois geradores `g1, g2` e retorna `True` se forem `Geradores` e se forem iguais"""
+
     if not eh_gerador(g1) or not eh_gerador(g2):
         return False
     return (cria_copia_gerador(g1)['b'], obtem_estado(g1)) == \
-        (cria_copia_gerador(g2)['b'], obtem_estado(g2))
+           (cria_copia_gerador(g2)['b'], obtem_estado(g2))
+
 
 # TRANSFORMADOR
-def gerador_para_str(g: Gerador) -> str:
-    '''Recebe o gerador `g` e retorna a sua representacao externa'''
-    
+def gerador_para_str(g) -> str:
+    """Recebe o gerador `g` e retorna a sua representacao externa"""
+
     return f'xorshift{cria_copia_gerador(g)["b"]}(s={obtem_estado(g)})'
 
+
 # ALTO NIVEL
-def gera_numero_aleatorio(g: Gerador, n: int) -> int:
-    '''Recebe o gerador `g` atualizando o seu estado e retorna um numero pseudoaleatorio
-    contido no intervalo [1, `n`]'''
-    
+def gera_numero_aleatorio(g, n: int) -> int:
+    """Recebe o gerador `g` atualizando o seu estado e retorna um numero pseudoaleatorio
+    contido no intervalo [1, `n`]"""
+
     atualiza_estado(g)
     return 1 + obtem_estado(g) % n
 
 
-def gera_carater_aleatorio(g: Gerador, c: str) -> str:
-    '''Recebe o gerador `g` atualizando o seu estado e retorna um caracter pseudoaleatorio
-    contido entre `"A"` e o caracter maiusculo `c`'''
-    
+def gera_carater_aleatorio(g, c: str) -> str:
+    """Recebe o gerador `g` atualizando o seu estado e retorna um caracter pseudoaleatorio
+    contido entre `"A"` e o caracter maiusculo `c`"""
+
     atualiza_estado(g)
-    return chr(65 + obtem_estado(g) % (ord(c) - ord('A') + 1)) # 65 eh o offset, porque chr(65) = 'A'
+    return chr(65 + obtem_estado(g) % (ord(c) - ord('A') + 1))  # 65 eh o offset, porque chr(65) = 'A'
 
 
 ##################
@@ -120,34 +122,36 @@ def gera_carater_aleatorio(g: Gerador, c: str) -> str:
 ##################
 
 # CONSTRUTORES
-def cria_coordenada(col: str, lin: int) -> Coordenada:
-    '''Recebe os valores `col` e `lin` que correspondem ao valor da coluna e linha
+def cria_coordenada(col: str, lin: int):
+    """Recebe os valores `col` e `lin` que correspondem ao valor da coluna e linha
     e retorna a coordenada apropriada\n
-    Representacao interna: {'col': `col`, 'lin': `lin`}'''
-    
+    Representacao interna: {'col': `col`, 'lin': `lin`}"""
+
     if (not isinstance(col, str) or not isinstance(lin, int) or
-            len(col) != 1 or                # `col` so pode ser 1 letra
-            not 65 <= ord(col) <= 90 or     # `col` tem de estar entre 'A' e 'Z'
+            len(col) != 1 or  # `col` so pode ser 1 letra
+            not 65 <= ord(col) <= 90 or  # `col` tem de estar entre 'A' e 'Z'
             not 1 <= lin <= 99):
         raise ValueError('cria_coordenada: argumentos invalidos')
     return {'col': col, 'lin': lin}
 
+
 # SELETORES
-def obtem_coluna(c: Coordenada) -> str:
-    '''Retorna o valor da coluna da coordenada `c` recebida'''
-    
+def obtem_coluna(c) -> str:
+    """Retorna o valor da coluna da coordenada `c` recebida"""
+
     return c['col']
 
 
-def obtem_linha(c: Coordenada) -> int:
-    '''Retorna o valor da linha da coordenada `c` recebida'''
-    
+def obtem_linha(c) -> int:
+    """Retorna o valor da linha da coordenada `c` recebida"""
+
     return c['lin']
+
 
 # RECONHECEDOR
 def eh_coordenada(arg) -> bool:
-    '''Retorna `True` se `arg` for um TAD `Coordenada` e `False` caso o contrario'''
-    
+    """Retorna `True` se `arg` for um TAD `Coordenada` e `False` caso o contrario"""
+
     if not isinstance(arg, dict) or len(arg) != 2:
         return False
     if (('col', 'lin') != tuple(arg.keys()) or
@@ -156,63 +160,69 @@ def eh_coordenada(arg) -> bool:
         return False
     return True
 
+
 # TESTE
-def coordenadas_iguais(c1: Coordenada, c2: Coordenada) -> bool:
-    '''Recebe duas coordenadas `c1, c2` e retorna `True` se forem `Coordenadas` e se forem iguais'''
-    
+def coordenadas_iguais(c1, c2) -> bool:
+    """Recebe duas coordenadas `c1, c2` e retorna `True` se forem `Coordenadas` e se forem iguais"""
+
     if not eh_coordenada(c1) or not eh_coordenada(c2):
         return False
     return (obtem_coluna(c1), obtem_linha(c1)) == \
-        (obtem_coluna(c2), obtem_linha(c2))
+           (obtem_coluna(c2), obtem_linha(c2))
+
 
 # TRANSFORMADOR
-def coordenada_para_str(c: Coordenada) -> str:
-    '''Recebe a coordenada `c` e retorna a sua representacao externa'''
-    
+def coordenada_para_str(c) -> str:
+    """Recebe a coordenada `c` e retorna a sua representacao externa"""
+
     return f'{obtem_coluna(c)}0{obtem_linha(c)}' if obtem_linha(c) < 10 \
-        else f'{obtem_coluna(c)}{obtem_linha(c)}' 
+        else f'{obtem_coluna(c)}{obtem_linha(c)}'
 
 
-def str_para_coordenada(s: str) -> Coordenada:
-    '''Recebe a representacao externa `s` e retorna a coordenada correspondente'''
-    
+def str_para_coordenada(s: str):
+    """Recebe a representacao externa `s` e retorna a coordenada correspondente"""
+
     return cria_coordenada(s[0], int(s[1:]))
 
+
 # ALTO NIVEL
-def obtem_coordenadas_vizinhas(c: Coordenada) -> tuple:
-    '''Retorna um tuplo com as coordenadas vizinhas a `c`'''
-    
+def obtem_coordenadas_vizinhas(c) -> tuple:
+    """Retorna um tuplo com as coordenadas vizinhas a `c`"""
+
     neighbours = ()
-    def loop_settings(i: int) -> list:
-        '''Funcao auxiliar que gera uma lista com definicoes variaveis para ser utilizado na funcao `range`
+
+    def loop_settings(step: int) -> list:
+        """Funcao auxiliar que gera uma lista com definicoes variaveis para ser utilizado na funcao `range`
         junto com um FOR loop de modo a tornar esse loop modular\n
-        Esta funcao eh necessaria para que o mesmo FOR loop obtenha as coordenadas vizinhas em 4 etapas'''
-        
+        Esta funcao eh necessaria para que o mesmo FOR loop obtenha as coordenadas vizinhas em 4 etapas"""
+
         # Etapa 1: (i = 1) -> obtem coordenadas vizinhas acima da esquerda para a direita
         # Etapa 2: (i = 2) -> obtem coordenada vizinha ah direita
         # Etapa 3: (i = 3) -> obtem coordenadas vizinhas abaixo da direita para a esquerda
         # Etapa 4: (i = 4) -> obtem coordenada vizinha ah esquerda
-        return [ord(obtem_coluna(c)) - 1, ord(obtem_coluna(c)) + 2] if i == 1 else \
-            [ord(obtem_coluna(c)) + 1, ord(obtem_coluna(c)) + 2] if i == 2 else \
-            [ord(obtem_coluna(c)) + 1, ord(obtem_coluna(c)) - 2, -1] if i == 3 else \
+        return [ord(obtem_coluna(c)) - 1, ord(obtem_coluna(c)) + 2] if step == 1 else \
+            [ord(obtem_coluna(c)) + 1, ord(obtem_coluna(c)) + 2] if step == 2 else \
+            [ord(obtem_coluna(c)) + 1, ord(obtem_coluna(c)) - 2, -1] if step == 3 else \
             [ord(obtem_coluna(c)) - 1, ord(obtem_coluna(c))]
-                
-    lines = (obtem_linha(c) - 1, obtem_linha(c), obtem_linha(c) + 1, obtem_linha(c)) # Cada das 4 etapas precisa da linha correspondente     
+
+    lines = (obtem_linha(c) - 1, obtem_linha(c), obtem_linha(c) + 1,
+             obtem_linha(c))  # Cada das 4 etapas precisa da linha correspondente
     for i, l in zip(range(1, 5), lines):
         for j in range(*loop_settings(i)):  # Operador * realiza o unpacking da lista retornada por `loop_settings`
             try:
-                neighbours += (cria_coordenada(chr(j), l), )    # Usamos try/except para nao adicionar coordenadas invalidas e nao sair do programa
-            except Exception:
+                # Usamos try/except para nao adicionar coordenadas invalidas e nao sair do programa
+                neighbours += (cria_coordenada(chr(j), l),)
+            except ValueError:
                 continue
     return neighbours
 
 
-def obtem_coordenada_aleatoria(c: Coordenada, g: Gerador) -> Coordenada:
-    '''Recebe uma coordenada `c` e um gerador `g` e retorna uma coordenada aleatoria utilizando `c`
-    para definir a maxima coluna e linha'''
-    
+def obtem_coordenada_aleatoria(c, g):
+    """Recebe uma coordenada `c` e um gerador `g` e retorna uma coordenada aleatoria utilizando `c`
+    para definir a maxima coluna e linha"""
+
     return cria_coordenada(
-        gera_carater_aleatorio(g, obtem_coluna(c)), 
+        gera_carater_aleatorio(g, obtem_coluna(c)),
         gera_numero_aleatorio(g, obtem_linha(c))
     )
 
@@ -222,121 +232,126 @@ def obtem_coordenada_aleatoria(c: Coordenada, g: Gerador) -> Coordenada:
 #################
 
 # CONSTRUTORES
-def cria_parcela() -> Parcela:
-    '''Retorna uma parcela tapada sem mina escondida
-    Representacao interna: {'state': `str`, 'mined': `bool`}'''
-    
+def cria_parcela():
+    """Retorna uma parcela tapada sem mina escondida
+    Representacao interna: {'state': `str`, 'mined': `bool`}"""
+
     return {'state': 'hidden', 'mined': False}
 
 
-def cria_copia_parcela(p: Parcela) -> Parcela:
-    '''Recebe uma parcela `p` e retorna uma copia'''
-    
+def cria_copia_parcela(p):
+    """Recebe uma parcela `p` e retorna uma copia"""
+
     return {i: p[i] for i in p}
 
+
 # MODIFICADORES
-def limpa_parcela(p: Parcela) -> Parcela:
-    '''Recebe uma parcela `p` e modifica destrutivamente o seu estado para `limpa`
-    Retorna a parcela `p` alterada'''
-    
+def limpa_parcela(p):
+    """Recebe uma parcela `p` e modifica destrutivamente o seu estado para `limpa`
+    Retorna a parcela `p` alterada"""
+
     p['state'] = 'clean'
     return p
 
 
-def marca_parcela(p: Parcela) -> Parcela:
-    '''Recebe uma parcela `p` e modifica destrutivamente o seu estado para `marcada`
-    Retorna a parcela `p` alterada'''
-    
+def marca_parcela(p):
+    """Recebe uma parcela `p` e modifica destrutivamente o seu estado para `marcada`
+    Retorna a parcela `p` alterada"""
+
     p['state'] = 'flagged'
     return p
 
 
-def desmarca_parcela(p: Parcela) -> Parcela:
-    '''Recebe uma parcela `p` e modifica destrutivamente o seu estado para `tapada`
-    Retorna a parcela `p` alterada'''
-    
+def desmarca_parcela(p):
+    """Recebe uma parcela `p` e modifica destrutivamente o seu estado para `tapada`
+    Retorna a parcela `p` alterada"""
+
     p['state'] = 'hidden'
     return p
 
 
-def esconde_mina(p: Parcela) -> Parcela:
-    '''Recebe uma parcela `p` e modifica destrutivamente o valor de mined para `True`
+def esconde_mina(p):
+    """Recebe uma parcela `p` e modifica destrutivamente o valor de mined para `True`
     efetivamente escondendo uma mina\n
-    Retorna a parcela `p` alterada'''
-    
+    Retorna a parcela `p` alterada"""
+
     p['mined'] = True
     return p
 
+
 # RECONHECEDOR
 def eh_parcela(arg) -> bool:
-    '''Retorna `True` se `arg` for um TAD `Parcela` e `False` caso o contrario'''
-    
+    """Retorna `True` se `arg` for um TAD `Parcela` e `False` caso o contrario"""
+
     if not isinstance(arg, dict) or len(arg) != 2:
         return False
     if (('state', 'mined') != tuple(arg.keys()) or
-            arg['state'] not in ('clean', 'flagged', 'hidden') or
-            arg['mined'] != True and arg['mined'] != False):
+            arg['state'] not in ('clean', 'flagged', 'hidden') or not arg['mined'] and
+            arg['mined']):
         return False
     return True
 
 
-def eh_parcela_tapada(p: Parcela) -> bool:
-    '''Recebe uma parcela `p` e retorna `True` se for uma parcela tapada\n
-    E `False` caso o contrario'''
-    
+def eh_parcela_tapada(p) -> bool:
+    """Recebe uma parcela `p` e retorna `True` se for uma parcela tapada\n
+    E `False` caso o contrario"""
+
     return p['state'] == 'hidden'
 
 
-def eh_parcela_marcada(p: Parcela) -> bool:
-    '''Recebe uma parcela `p` e retorna `True` se for uma parcela marcada\n
-    E `False` caso o contrario'''
-    
+def eh_parcela_marcada(p) -> bool:
+    """Recebe uma parcela `p` e retorna `True` se for uma parcela marcada\n
+    E `False` caso o contrario"""
+
     return p['state'] == 'flagged'
 
 
-def eh_parcela_limpa(p: Parcela) -> bool:
-    '''Recebe uma parcela `p` e retorna `True` se for uma parcela limpa\n
-    E `False` caso o contrario'''
-    
+def eh_parcela_limpa(p) -> bool:
+    """Recebe uma parcela `p` e retorna `True` se for uma parcela limpa\n
+    E `False` caso o contrario"""
+
     return p['state'] == 'clean'
 
 
-def eh_parcela_minada(p: Parcela) -> bool:
-    '''Recebe uma parcela `p` e retorna `True` se for uma parcela minada\n
-    E `False` caso contrario'''
-    
-    return p['mined'] == True
+def eh_parcela_minada(p) -> bool:
+    """Recebe uma parcela `p` e retorna `True` se for uma parcela minada\n
+    E `False` caso contrario"""
+
+    return p['mined']
+
 
 # TESTE
-def parcelas_iguais(p1: Parcela, p2: Parcela) -> bool:
-    '''Recebe duas parcelas `p1, p2` e retorna `True` se forem ambas TAD `Parcela`\n
-    e se forem iguais. `False` caso contrario'''
-    
+def parcelas_iguais(p1, p2) -> bool:
+    """Recebe duas parcelas `p1, p2` e retorna `True` se forem ambas TAD `Parcela`\n
+    e se forem iguais. `False` caso contrario"""
+
     if not eh_parcela(p1) or not eh_parcela(p2):
         return False
     return p1['state'] == p2['state'] and p1['mined'] == p2['mined']
 
+
 # TRANSFORMADOR
-def parcela_para_str(p: Parcela) -> str:
-    '''Devolve a representacao externa da parcela `p` em funcao do seu estado\n
+def parcela_para_str(p) -> str:
+    """Devolve a representacao externa da parcela `p` em funcao do seu estado\n
     `# -> tapada`\n
     `@ -> marcada`\n
     `? -> limpa s/mina`\n
-    `X -> limpa c/mina`'''
-    
-    state_chars = {'hidden': '#', 'flagged': '@', 'clean': '?','clean_mined': 'X'}
-    
+    `X -> limpa c/mina`"""
+
+    state_chars = {'hidden': '#', 'flagged': '@', 'clean': '?', 'clean_mined': 'X'}
+
     # Apenas existem 3 estados (limpo, marcado, tapado). Logo eh preciso verificar se a parcela eh minada e limpa
     # para aceder ao caracter `X`
     if not p['mined'] or (p['state'] != 'clean' and p['mined']):
         return state_chars[p['state']]
     return state_chars['clean_mined']
 
+
 # ALTO NIVEL
 def alterna_bandeira(p) -> bool:
-    '''Recebe uma parcela `p` e modifica o seu estado destrutivamente de modo 
-    a marcar ou desmarcar a parcela'''
-    
+    """Recebe uma parcela `p` e modifica o seu estado destrutivamente de modo
+    a marcar ou desmarcar a parcela"""
+
     if eh_parcela_marcada(p) or eh_parcela_tapada(p):
         if eh_parcela_marcada(p):
             desmarca_parcela(p)
@@ -351,224 +366,236 @@ def alterna_bandeira(p) -> bool:
 #################
 
 # CONSTRUTORES
-def cria_campo(c: str, l: int) -> Campo:
-    '''Recebe o numero maximo de colunas e linhas (`c`, `l`) e retorna um novo campo 
+def cria_campo(c: str, l: int):
+    """Recebe o numero maximo de colunas e linhas (`c`, `l`) e retorna um novo campo
     com essas dimensoes populado com novas parcelas tapadas sem minas\n
-    Representacao interna: {'A01': `Parcela`, 'B01': `Parcela`, ...etc}'''
-    
+    Representacao interna: {'A01': `Parcela`, 'B01': `Parcela`, ...etc}"""
+
     if (not isinstance(c, str) or not isinstance(l, int) or
-            len(c) != 1 or              # `c` tem de ser apenas 1 letra
+            len(c) != 1 or  # `c` tem de ser apenas 1 letra
             not 65 <= ord(c) <= 90 or
             not 1 <= l <= 99):
         raise ValueError('cria_campo: argumentos invalidos')
     # Dois FOR loops (linhas, colunas). cada chave eh a representacao externa de uma coordenada
     # E o valor eh uma nova parcela
     return {
-            f'{coordenada_para_str(cria_coordenada(chr(j), i))}': cria_parcela()
-            for i in range(1, l + 1) 
-            for j in range(65, ord(c) + 1)
+        f'{coordenada_para_str(cria_coordenada(chr(j), i))}': cria_parcela()
+        for i in range(1, l + 1)
+        for j in range(65, ord(c) + 1)
     }
 
-def cria_copia_campo(m: Campo) -> Campo:
-    '''Recebe um campo `m` e retorna uma copia'''
-    
+
+def cria_copia_campo(m):
+    """Recebe um campo `m` e retorna uma copia"""
+
     return {i: m[i].copy() for i in m}
 
+
 # SELETORES
-def obtem_ultima_coluna(m: Campo) -> str:
-    '''Retorna a string que corresponde ah ultima coluna do campo `m`'''
+def obtem_ultima_coluna(m) -> str:
+    """Retorna a string que corresponde ah ultima coluna do campo `m`"""
     return tuple(m.keys())[-1][0]
 
 
 def obtem_ultima_linha(m) -> int:
-    '''Retorna o valor que corresponde ah ultima linha do campo `m`'''
+    """Retorna o valor que corresponde ah ultima linha do campo `m`"""
     return int(tuple(m.keys())[-1][1:])
 
 
-def obtem_parcela(m: Campo, c: Coordenada) -> Parcela:
-    '''Retorna a parcela correspondente ah coordenada `c` do campo `m`'''
+def obtem_parcela(m, c):
+    """Retorna a parcela correspondente ah coordenada `c` do campo `m`"""
     return m[f'{coordenada_para_str(c)}']
 
 
-def obtem_coordenadas(m: Campo, s: str) -> tuple:
-    '''Retorna o tuplo constituido pelas coordenadas do campo `m` que tem
-    estado `s` (tapadas, minadas, marcadas, limpas)'''
-    
-    def get_coords(m: Campo, fn) -> tuple:
-        '''Funcao auxiliar recebe campo `m` e uma funcao `fn` que serve como predicado
-        para filtrar as coordenadas'''
-        
+def obtem_coordenadas(m, s: str) -> tuple:
+    """Retorna o tuplo constituido pelas coordenadas do campo `m` que tem
+    estado `s` (tapadas, minadas, marcadas, limpas)"""
+
+    def get_coords(m, fn) -> tuple:
+        """Funcao auxiliar recebe campo `m` e uma funcao `fn` que serve como predicado
+        para filtrar as coordenadas"""
+
         return tuple([str_para_coordenada(i) for i in m if fn(m[i])])
-    
+
     return get_coords(m, eh_parcela_tapada) if s == 'tapadas' else \
         get_coords(m, eh_parcela_marcada) if s == 'marcadas' else \
         get_coords(m, eh_parcela_limpa) if s == 'limpas' else \
         get_coords(m, eh_parcela_minada)
 
-    
-def eh_coordenada_do_campo(m: Campo, c: Coordenada) -> bool:
-    '''Retorna `True` se a coordenada `c` existir no campo `m`\n
-    `False` caso contrario'''
-    
+
+def eh_coordenada_do_campo(m, c) -> bool:
+    """Retorna `True` se a coordenada `c` existir no campo `m`\n
+    `False` caso contrario"""
+
     return coordenada_para_str(c) in m
 
 
-def in_bounds_and_is_bomb(m: Campo, c: Coordenada):
-    '''Funcao auxiliar verifica se a coordenada `c` existe no campo `m` e
-    se a parcela correspondente eh minada'''
-    
+def in_bounds_and_is_bomb(m, c):
+    """Funcao auxiliar verifica se a coordenada `c` existe no campo `m` e
+    se a parcela correspondente eh minada"""
+
     return eh_coordenada_do_campo(m, c) and eh_parcela_minada(m[coordenada_para_str(c)])
 
 
-def obtem_numero_minas_vizinhas(m: Campo, c: Coordenada):
-    '''Retorna o numero de parcelas minadas do campo `m` e na vizinhanca da coordenada `c`'''
-    
+def obtem_numero_minas_vizinhas(m, c):
+    """Retorna o numero de parcelas minadas do campo `m` e na vizinhanca da coordenada `c`"""
+
     neighbours = obtem_coordenadas_vizinhas(c)
     return len(tuple(filter(lambda c: in_bounds_and_is_bomb(m, c), neighbours)))
 
+
 # RECONHECEDORES
 def eh_campo(arg) -> bool:
-    '''Retorna `True` se `arg` eh um TAD `Campo`\n
-    `False` caso contrario'''
+    """Retorna `True` se `arg` eh um TAD `Campo`\n
+    `False` caso contrario"""
+
     if not isinstance(arg, dict) or len(arg) < 1:
         return False
     for i in arg:
         try:
-            cria_coordenada(i[0], int(i[1:]))   # try/except para verificar se existe uma coordenada no campo invalida
-        except Exception:
+            cria_coordenada(i[0], int(i[1:]))  # try/except para verificar se existe uma coordenada no campo invalida
+        except ValueError:
             return False
         if not eh_parcela(arg[i]):
             return False
     return True
 
+
 # TESTE
-def campos_iguais(m1: Campo, m2: Campo) -> bool:
-    '''Retorna `True` se (`m1`, `m2`) forem ambos TAD `Campo` e se forem iguais'''
-    
+def campos_iguais(m1, m2) -> bool:
+    """Retorna `True` se (`m1`, `m2`) forem ambos TAD `Campo` e se forem iguais"""
+
     return eh_campo(m1) and eh_campo(m2) and m1.items() == m2.items()
 
+
 # TRANSFORMADOR
-def campo_para_str(m: Campo) -> str:
-    '''Retorna a representacao externa do campo `m`'''
-    
+def campo_para_str(m) -> str:
+    """Retorna a representacao externa do campo `m`"""
+
     # Lista das colunas ex: ['A', 'B', 'C', ...]
     columns = [chr(i) for i in range(65, ord(obtem_ultima_coluna(m)) + 1)]
     # Lista das linhas ex: ['01', '02', '03', ...]
     lines = [f'0{i}' if i < 10 else f'{i}' for i in range(1, obtem_ultima_linha(m) + 1)]
 
-    def populate_field(m: Campo, lin_list: list[str], col_list: list[str]) -> str:
-        '''Funcao auxiliar que retorna linhas do campo `m` utilizando as listas `lin_list` e `col_list`'''
+    def populate_field(m, lin_list: list, col_list: list) -> str:
+        """Funcao auxiliar que retorna linhas do campo `m` utilizando as listas `lin_list` e `col_list`"""
+
         field = ''
         for i in lin_list:
-            field += f'{i}|'    # Inicia a linha com o numero da linha. ex: 01|
+            field += f'{i}|'  # Inicia a linha com o numero da linha. ex: 01|
             for j in col_list:
                 parcela_str = parcela_para_str(m[f'{j}{i}'])
                 if parcela_str == '?':
                     if obtem_numero_minas_vizinhas(m, cria_coordenada(j, int(i))) == 0:
-                        field += ' '        # se a celula tiver 0 bombas na vizinhanca
+                        field += ' '  # se a celula tiver 0 bombas na vizinhanca
                     else:
                         field += f'{obtem_numero_minas_vizinhas(m, cria_coordenada(j, int(i)))}'
                 else:
                     field += parcela_para_str(m[f'{j}{i}'])
             field += '|\n'  # Acaba a linha e adiciona \n para estar pronta para a proxima linha
         return field
-       
+
     return (
-        f"   {''.join(columns)}\n"                                      # colunas ex: ABCDEFGH..
-        f"  +{'-' * len(columns)}+\n"                                   # limites superiores do campo do campo ex: +--------+
-        f"{populate_field(m, lines, columns)}  +{'-' * len(columns)}+"  # As linhas do campo e os limites inferiores do campo
-    )  
+        f"   {''.join(columns)}\n"  # colunas ex: ABCDEFGH..
+        f"  +{'-' * len(columns)}+\n"  # limites superiores do campo do campo ex: +--------+
+        f"{populate_field(m, lines, columns)}  +{'-' * len(columns)}+"  # As linhas do campo e os limites inferiores
+    )
+
 
 # AUXILARES P/ F.ALTO NIVEL
-def no_bombs_filter(m: Campo, c0: tuple[Coordenada], c0_last: tuple[Coordenada], c0_new: tuple[Coordenada], c: Coordenada):
-    '''Funcao auxiliar a `limpa_campo` filtra o tuplo de coordenadas `c0` de modo a retirar coordenadas que:\n
+def no_bombs_filter(m, c0: tuple, c0_last: tuple, c0_new: tuple, c):
+    """Funcao auxiliar a `limpa_campo` filtra o tuplo de coordenadas `c0` de modo a retirar coordenadas que:\n
     Ja foram limpas ou ja foram adicionadas ah lista para serem limpas\n
     Nao pertencam ao campo\n
-    Teem minas na vizinhanca\n'''
-    
+    Teem minas na vizinhanca\n"""
+
     return eh_coordenada_do_campo(m, c) and obtem_numero_minas_vizinhas(m, c) == 0 and \
         c not in (*c0, *c0_last, *c0_new) and \
         eh_parcela_tapada(obtem_parcela(m, c))
-        
-def near_bombs_filter(m: Campo, c1: tuple[Coordenada], c1_last: tuple[Coordenada], c1_new: tuple[Coordenada], c: Coordenada):
-    '''Funcao auxiliar a `limpa_campo` filtra o tuplo de coordenadas `c1` de modo a retirar coordenadas que:\n
+
+
+def near_bombs_filter(m, c1: tuple, c1_last: tuple, c1_new: tuple, c):
+    """Funcao auxiliar a `limpa_campo` filtra o tuplo de coordenadas `c1` de modo a retirar coordenadas que:\n
     Ja foram limpas ou ja foram adicionadas ah lista para serem limpas\n
     Nao pertencam ao campo\n
-    Nao Teem minas na vizinhanca\n'''
-    
+    Nao Teem minas na vizinhanca\n"""
+
     return eh_coordenada_do_campo(m, c) and obtem_numero_minas_vizinhas(m, c) >= 1 and \
         c not in (*c1, *c1_last, *c1_new) and \
         eh_parcela_tapada(obtem_parcela(m, c))
-        
+
+
 # ALTO NIVEL
-def coloca_minas(m: Campo, c: Coordenada, g: Gerador, n: int):
-    '''Retorna o campo `m` destrutivamente modificado que esconde `n` minas geradas aleatoriamente
+def coloca_minas(m, c, g, n: int):
+    """Retorna o campo `m` destrutivamente modificado que esconde `n` minas geradas aleatoriamente
     pelo o gerador `g` mas que nao coincidam com a coordenada `c` e a sua vizinhanca ou que ja tenham
-    minas'''
-    
-    not_allowed_coords = (c, ) + obtem_coordenadas_vizinhas(c)
+    minas"""
+
+    not_allowed_coords = (c,) + obtem_coordenadas_vizinhas(c)
+
     def generate_coord(g):
-            return obtem_coordenada_aleatoria(cria_coordenada(obtem_ultima_coluna(m), obtem_ultima_linha(m)), g)
-    
+        return obtem_coordenada_aleatoria(cria_coordenada(obtem_ultima_coluna(m), obtem_ultima_linha(m)), g)
+
     new_coord = generate_coord(g)
     for i in range(n):
         # Enquanto `new_coord` nao for uma coordenada adequada para ser 
-        while (new_coord in not_allowed_coords or eh_parcela_minada(obtem_parcela(m, new_coord))):
+        while new_coord in not_allowed_coords or eh_parcela_minada(obtem_parcela(m, new_coord)):
             new_coord = generate_coord(g)
         esconde_mina(obtem_parcela(m, new_coord))
-    return m 
+    return m
 
 
-def limpa_campo(m: Campo, c: Coordenada):
-    '''Retorna o campo `m` destrutivamente modificado limpando a parcela de coordenada `c`
-    Se nao houver nenhuma mina escondida na vizinhanca vai limpando todas as parcelas vizinhas'''
-    
+def limpa_campo(m, c):
+    """Retorna o campo `m` destrutivamente modificado limpando a parcela de coordenada `c`
+    Se nao houver nenhuma mina escondida na vizinhanca vai limpando todas as parcelas vizinhas"""
+
     # Limpa somente essa parcela se tiver minas na vizinhanca
-    if (eh_parcela_minada(obtem_parcela(m, c)) or obtem_numero_minas_vizinhas(m, c) >= 1):
+    if eh_parcela_minada(obtem_parcela(m, c)) or obtem_numero_minas_vizinhas(m, c) >= 1:
         limpa_parcela(obtem_parcela(m, c))
         return m
     # Nao modifica nada se nao for uma parcela tapada
-    if not eh_parcela_tapada(obtem_parcela(m, c)): return m
+    if not eh_parcela_tapada(obtem_parcela(m, c)):
+        return m
 
-    def get_clean_cells(m: Campo, c0: tuple[Coordenada], c1: tuple[Coordenada],
-                        c0_last: tuple[Coordenada], c1_last: tuple[Coordenada]):
-        '''Funcao recursiva auxiliar. `c0` eh um tuplo de coordenadas sem minas na vizinhanca
+    def get_clean_cells(m, c0: tuple, c1: tuple, c0_last: tuple, c1_last: tuple):
+        """Funcao recursiva auxiliar. `c0` eh um tuplo de coordenadas sem minas na vizinhanca
         que precisam de ser limpas. `c1` eh um tuplo de coordenadas com minas na vizinhanca
         que precisam de ser limpas. `c0_last` e `c1_last` correspondem ao respetivos tuplos
-        que joram limpos para evitar ciclos desnecessarios.'''
-        
+        que joram limpos para evitar ciclos desnecessarios."""
+
         if (*c0, *c1) == ():
             # Acabar a recursao quando ja nao houverem mais celulas para limpar
             return c0_last + c1_last
-        c0_new, c1_new = (), ()     # tuplos de coordenadas vizinhas do tuplo `c0` e `c1` que serao escolhidas para limpar  
+        c0_new, c1_new = (), ()  # tuplos de coordenadas vizinhas do tuplo `c0` e `c1` que serao escolhidas para limpar
         for i in c0:
             v = obtem_coordenadas_vizinhas(i)
             # Filtrar os tuplos de modo a evitar coordenadas repetidas para melhor eficiencia
-            c0_new += tuple(filter(lambda c: no_bombs_filter(m, c0, c0_last, c0_new, c), v)) 
+            c0_new += tuple(filter(lambda c: no_bombs_filter(m, c0, c0_last, c0_new, c), v))
             c1_new += tuple(filter(lambda c: near_bombs_filter(m, c1, c1_last, c1_new, c), v))
         # Novo nivel de recursao com as proximas coordenadas para limpar e adicionamos as que foram limpas
         # a uma lista que indicara ao algoritmo para ignorar para melhor eficiencia
         return get_clean_cells(m, c0_new, c1_new, (c0 + c0_last), (c1 + c1_last))
-    
-    results = get_clean_cells(m, (c, ), (), (), ())     # obtem todas as parcelas que vao ser limpas
+
+    results = get_clean_cells(m, (c,), (), (), ())  # obtem todas as parcelas que vao ser limpas
     for i in results:
         limpa_parcela(obtem_parcela(m, i))
     return m
 
 
 # FUNCOES ADICIONAIS
-def jogo_ganho(m: Campo) -> bool:
-    '''Recebe um campo `m` e retorna `True` se todas as parcelas sem minas se encontram limpas\n
-    `False` caso contrario'''
-    
+def jogo_ganho(m) -> bool:
+    """Recebe um campo `m` e retorna `True` se todas as parcelas sem minas se encontram limpas\n
+    `False` caso contrario"""
+
     mined_cells = obtem_coordenadas(m, 'minadas')
     hidden_or_flagged = obtem_coordenadas(m, 'marcadas') + obtem_coordenadas(m, 'tapadas')
     return len(mined_cells) == len(hidden_or_flagged)
 
-def until_valid_coordenate(m: Campo, c: str):
-    '''Funcao auxiliar que faz um loop enquanto a representacao externa `c`
-    de uma coordenada do campo `m` inserida pelo utilizador nao esteja correta'''
-    
+
+def until_valid_coordenate(m, c: str):
+    """Funcao auxiliar que faz um loop enquanto a representacao externa `c`
+    de uma coordenada do campo `m` inserida pelo utilizador nao esteja correta"""
+
     while not eh_coordenada(c):
         c = input('Escolha uma coordenada:')
         try:
@@ -576,17 +603,17 @@ def until_valid_coordenate(m: Campo, c: str):
             c = str_para_coordenada(c)
             if not eh_coordenada_do_campo(m, c):
                 c = ''
-        except Exception:
+        except ValueError:
             continue
     return c
 
 
-def turno_jogador(m: Campo) -> bool:
-    '''Funcao que permite ao utilizador interagir com o jogo do campo `m`
+def turno_jogador(m) -> bool:
+    """Funcao que permite ao utilizador interagir com o jogo do campo `m`
     propondo duas opcoes `Limpar` e `Marcar` executando essas acoes\n
     Retorna `False` se caso o jogador tenha limpo uma parcela minada\n
-    `True` caso contrario'''
-    
+    `True` caso contrario"""
+
     option, coord = '', ''
     while option != 'L' and option != 'M':
         option = input('Escolha uma ação, [L]impar ou [M]arcar:')
@@ -597,19 +624,19 @@ def turno_jogador(m: Campo) -> bool:
         return not eh_parcela_minada(obtem_parcela(m, coord))
     # Se option == 'M'
     alterna_bandeira(obtem_parcela(m, coord))
-                
+
     return True
 
 
-def main_loop(field: Campo, n: int) -> bool:
-    '''Funcao auxiliar que gera o loop principal
+def main_loop(field, n: int) -> bool:
+    """Funcao auxiliar que gera o loop principal
     que permite ao utilizador jogar
-    `n` eh o numero de minas que existem no campo'''
-    
+    `n` eh o numero de minas que existem no campo"""
+
     def field_info(field, n) -> None:
-        '''Funcao auxiliar que gera a GUI do campo `field`
-        `n` eh o numero de minas que existem no campo'''
-        
+        """Funcao auxiliar que gera a GUI do campo `field`
+        `n` eh o numero de minas que existem no campo"""
+
         flags = len(obtem_coordenadas(field, 'marcadas'))
         print(f'   [Bandeiras {flags}/{n}]')
         print(campo_para_str(field))
@@ -625,33 +652,37 @@ def main_loop(field: Campo, n: int) -> bool:
             print('VITORIA!!!')
             return True
 
+
 def minas(c: str, l: int, n: int, d: int, s: int) -> bool:
-    '''Funcao principal em conjunto com funcoes auxiliares permitem jogar
+    """Funcao principal em conjunto com funcoes auxiliares permitem jogar
     o jogo das minas.\n
     `c` -> coluna maxima\n
     `l` -> linha maxima\n
     `n` -> num de minas\n
     `d` -> bits do gerador\n
-    `s` -> seed incial do gerador'''
-    
+    `s` -> seed incial do gerador"""
+
     if (not isinstance(c, str) or not isinstance(l, int) or
             not isinstance(n, int) or not isinstance(d, int) or
             not isinstance(s, int) or len(c) != 1 or
             not 65 <= ord(c) <= 90 or not 1 <= l <= 99 or
             # num de minas tem de ser > 1 e menor que num de parcelas do campo
             d != 32 and d != 64 or not 1 <= n < (ord(c) - 64) * l or
-            s < 1): # seed tem de ser positiva 
+            s < 1):  # seed tem de ser positiva
         raise ValueError('minas: argumentos invalidos')
-    area = (ord(c) - 64 ) * l
+    area = (ord(c) - 64) * l
     if area < 6:  # Se area do campo for < 6 (campo menor que 2x3 ou 3x2) nao haveria espaco para gerar minas
         raise ValueError('minas: argumentos invalidos')
-    
+
     field, generator, init_coord = cria_campo(c, l), cria_gerador(d, s), ''
     print(f'   [Bandeiras 0/{n}]')
     print(campo_para_str(field))
     init_coord = until_valid_coordenate(field, init_coord)
-    
+
     field = coloca_minas(field, init_coord, generator, n)
     limpa_campo(field, init_coord)
-    
+
     return main_loop(field, n)
+
+
+minas('Z', 5, 20, 32, 9)
